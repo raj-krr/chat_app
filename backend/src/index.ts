@@ -22,7 +22,7 @@ app.get("/api/health", (_req: Request, res: Response) => {
 });
 
 app.get("/", (req: Request, res: Response) => {
-  res.send("Server is running...");
+  res.send("Server is running ....");
 });
 
 app.use("/api/auth", authRoutes);
