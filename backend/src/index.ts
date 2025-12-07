@@ -1,17 +1,18 @@
 import dotenv from "dotenv";
 dotenv.config();
-
+import cookieParser from "cookie-parser";
 import express, { Application, Request, Response } from "express";
 import mongoDb from "./libs/db";
 
 const app: Application = express();
 
 app.use(express.json());
-
+app.use(cookieParser());
 
 mongoDb();
 
 import authRoutes from "./routes/authRoute";
+
 
 app.get("/api/health", (_req: Request, res: Response) => {
   res.json({
@@ -34,5 +35,5 @@ const host = process.env.NODE_ENV === "production" ? "0.0.0.0" : "127.0.0.1";
 
 // Start server
 app.listen(port, host, () => {
-  console.log(`🚀 Server running on http://${host}:${port}`);
+  console.log(` Server running on http://${host}:${port}`);
 });
