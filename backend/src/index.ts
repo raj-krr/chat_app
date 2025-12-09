@@ -2,6 +2,7 @@ import dotenv from "dotenv";
 dotenv.config();
 import cookieParser from "cookie-parser";
 import express, { Application, Request, Response } from "express";
+import cors from "cors";
 import mongoDb from "./libs/db";
 import authRoutes from "./routes/authRoute";
 import meRoutes from "./routes/meRoutes";
@@ -12,6 +13,10 @@ const app: Application = express();
 
 app.use(express.json());
 app.use(cookieParser());
+app.use(cors({
+  origin: process.env.FRONTEND_URL,
+  credentials: true,
+}));
 
 mongoDb();
 
