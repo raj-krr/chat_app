@@ -1,19 +1,48 @@
-export default function App() {
+import Navbar from "./components/Navbar";
+import { Routes, Route } from "react-router-dom";
+import HomePage from "./pages/HomePage";
+import SignUpPage from "./pages/SignUpPage";
+import LoginPage from "./pages/LoginPage";
+import SettingsPage from "./pages/SettingsPage";
+import ProfilePage from "./pages/ProfilePage";
+import { useAuthStore } from "./store/useAuthStore";
+import { useEffect } from "react";
+import { Loader } from "lucide-react";
+import { Navigate } from "react-router-dom";
+import { Toaster } from "react-hot-toast";
+
+
+
+
+const App = () => {
+  const { authUser, checkAuth, isCheckingAuth } = useAuthStore();
+  useEffect(() => {
+    if (typeof checkAuth === "function") checkAuth();
+  }, []);
+
+  console.log({ authUser });
+  
+  if (isCheckingAuth && !authUser) {
+    return <div className="flex items-center justify-center h-screen">
+      <Loader className="animate-spin" />
+    </div>;
+  }
   return (
-    <div className="p-10 space-y-4">
+    <div>
+      <Navbar />
+      <Routes>
+        <Route path="/" element={authUser?<HomePage />:<Navigate to ="/login"/>} />
+        <Route path="/signup" element={!authUser?<SignUpPage />:<Navigate to ="/"/>} />
+        <Route path="/login" element={!authUser?<LoginPage />:<Navigate to = "/"/>} />
+        <Route path="/settings" element={<SettingsPage />} />
+        <Route path="/profile" element={authUser?<ProfilePage />:<Navigate to ="/login"/>} />
 
-      <button className="btn btn-primary">Primary Button</button>
+       
+      </Routes>
 
-      <div className="alert alert-success">
-        <span>DaisyUI is working!</span>
-      </div>
-
-      <div className="avatar">
-        <div className="w-24 rounded-full ring ring-primary ring-offset-base-100 ring-offset-2">
-          <img src="https://i.pravatar.cc/300" alt="avatar" />
-        </div>
-      </div>
-
+      <Toaster/>
+      
     </div>
   );
-}
+};
+export default App;
