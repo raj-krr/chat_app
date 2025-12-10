@@ -1,10 +1,22 @@
-import axios from "axios";
 import { create } from "zustand";
 import { axiosInstance } from "../lib/axios";
-import { data } from "react-router-dom";
 import toast from "react-hot-toast";
 
-export const useAuthStore = create((set) => ({
+interface User{
+    userId: string,
+    email:string,
+};
+
+interface AuthState {
+    authUser: User | null;
+    isCheckingAuth: boolean;
+    isSigningUp: boolean;
+    checkAuth: () => Promise<void>;
+    signup: (formData:any) => Promise<void>;
+}
+
+
+export const useAuthStore = create<AuthState>((set) => ({
     authUser: null,
     isSigningUp: false,
     isLoggingin: false,
@@ -23,10 +35,10 @@ export const useAuthStore = create((set) => ({
         };
     },
 
-    signup: async (data:any) => {
+    signup: async (FormData:any) => {
         set({ isSigningUp: true });
         try {
-            const res = await axiosInstance.post("/auth/register", data);
+            const res = await axiosInstance.post("/auth/register", FormData);
             set({ authUser: res.data });
             toast.success("Account created successfully");
     
