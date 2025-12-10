@@ -22,7 +22,7 @@ export const useAuthStore = create<AuthState>((set) => ({
 
     checkAuth: async () => {
         try {
-            const res = await axiosInstance.get("/auth/check");
+            const res = await axiosInstance.get("auth/check");
             set({ authUser: res.data.user });
         } catch (error) {
             console.log("Auth check error:", error);
@@ -35,7 +35,7 @@ export const useAuthStore = create<AuthState>((set) => ({
     signup: async (formData: any) => {
         set({ isSigningUp: true });
         try {
-            const res = await axiosInstance.post("/auth/register", formData);
+            const res = await axiosInstance.post("auth/register", formData);
 
             set({ authUser: res.data.user });
 
