@@ -4,7 +4,6 @@ import { axiosInstance } from "../lib/axios";
 import { data } from "react-router-dom";
 import toast from "react-hot-toast";
 
-
 export const useAuthStore = create((set) => ({
     authUser: null,
     isSigningUp: false,
