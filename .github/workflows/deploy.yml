@@ -29,7 +29,7 @@ jobs:
             echo '--- Ensuring env folder exists ---'
             mkdir -p env
 
-            echo '--- Backing up current version ---'
+            echo '--- Backing up previous version ---'
             rm -rf chat_app_prev
             cp -r chat_app chat_app_prev || true
 
@@ -42,14 +42,17 @@ jobs:
             cp ../env/backend.env ./backend/.env
             cp ../env/frontend.env ./frontend/.env
 
+            echo '--- Loading frontend env variables into shell ---'
+            export \$(grep -v '^#' ../env/frontend.env | xargs)
+
             echo '--- Stopping running containers ---'
-            sudo docker compose down || true
+            sudo docker-compose down || true
 
             echo '--- Building new containers ---'
-            if ! sudo docker compose up -d --build; then
+            if ! sudo docker-compose up -d --build; then
               echo ' Build failed — Rolling back...'
 
-              sudo docker compose down || true
+              sudo docker-compose down || true
               cd ~/chat_app
 
               rm -rf chat_app
@@ -57,7 +60,7 @@ jobs:
 
               echo '--- Starting rollback containers ---'
               cd chat_app
-              sudo docker compose up -d
+              sudo docker-compose up -d
 
               exit 1
             fi
