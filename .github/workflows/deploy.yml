@@ -26,17 +26,21 @@ jobs:
 
             cd ~/chat_app
 
-            echo '--- Ensuring env folder exists (safe from deletion) ---'
+            echo '--- Ensuring env folder exists ---'
             mkdir -p env
 
-            echo '--- Backing up previous version (ONLY code, NOT env) ---'
-            rm -rf app_prev
-            cp -r app app_prev || true
+            echo '--- Backing up current version ---'
+            rm -rf chat_app_prev
+            cp -r chat_app chat_app_prev || true
 
             echo '--- Updating source code ---'
-            cd app
+            cd chat_app
             git reset --hard
             git pull origin main
+
+            echo '--- Copy envs into build context ---'
+            cp ../env/backend.env ./backend/.env
+            cp ../env/frontend.env ./frontend/.env
 
             echo '--- Stopping running containers ---'
             sudo docker compose down || true
@@ -48,11 +52,11 @@ jobs:
               sudo docker compose down || true
               cd ~/chat_app
 
-              rm -rf app
-              mv app_prev app
+              rm -rf chat_app
+              mv chat_app_prev chat_app
 
-              echo '--- Starting rollback container ---'
-              cd app
+              echo '--- Starting rollback containers ---'
+              cd chat_app
               sudo docker compose up -d
 
               exit 1
