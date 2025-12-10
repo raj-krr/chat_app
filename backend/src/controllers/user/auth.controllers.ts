@@ -65,7 +65,7 @@ import { logoutOptions, options } from "../../utils/cookie";
     try {
         await user?.save();
         try {
-            sendVerificationMail(email, verificationCode);
+          await  sendVerificationMail(email, verificationCode);
         } catch (error) {
             user.verificationCode = undefined as any;
             user.verificationCodeExpires = undefined as any;
@@ -89,12 +89,12 @@ export const resendVerificationCode= async (req: Request, res: Response) => {
         if (!user) {
             return res.status(400).json({ success: false, msg: "User not found" })
         };
-        if (user.isVerified ===true) {
+        if (user.isVerified = true) {
             return res.status(200).json({ success: false, msg: "User already verified" })
         };
         const code = generateCode(6);
         user.verificationCode = code;
-        user.verificationCodeExpires = new Date(Date.now() + 5 * 60 * 60);
+        user.verificationCodeExpires = new Date(Date.now() + 5 * 60 * 1000);
         user.updatedAt = new Date();
     try {
         await user.save();
