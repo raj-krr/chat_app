@@ -1,72 +1,101 @@
-name: Auto Deploy to EC2 (with Rollback and Safe Env)
+name: CI/CD - Build & Deploy to EC2 (with Rollback)
 
 on:
   push:
     branches:
       - main
 
+env:
+  BACKEND: ${{ secrets.DOCKER_USERNAME }}/chat_app_backend
+  FRONTEND: ${{ secrets.DOCKER_USERNAME }}/chat_app_frontend
+  SHA: ${{ github.sha }}
+
 jobs:
-  deploy:
+
+  build_and_push:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@v3
+      - name: Checkout
+        uses: actions/checkout@v4
 
-      - name: Setup SSH
+      - name: Login to Docker Hub
+        run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
+
+      - name: Build + Push Backend Image
+        run: |
+          docker build \
+            -t $BACKEND:latest \
+            -t $BACKEND:${SHA:0:8} \
+            ./backend
+
+          docker push $BACKEND:latest
+          docker push $BACKEND:${SHA:0:8}
+
+      - name: Build + Push Frontend Image
+        env:
+          VITE_API_URL: ${{ secrets.PROD_VITE_API_URL }}
+        run: |
+          docker build \
+            --build-arg VITE_API_URL=$VITE_API_URL \
+            -t $FRONTEND:latest \
+            -t $FRONTEND:${SHA:0:8} \
+            ./frontend
+
+          docker push $FRONTEND:latest
+          docker push $FRONTEND:${SHA:0:8}
+
+  deploy_to_ec2:
+    needs: build_and_push
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Setup SSH key
         run: |
           mkdir -p ~/.ssh
           echo "${{ secrets.EC2_SSH_KEY }}" > ~/.ssh/ec2_key
           chmod 600 ~/.ssh/ec2_key
 
       - name: Deploy to EC2
+        env:
+          BACKEND: ${{ secrets.DOCKER_USERNAME }}/chat_app_backend
+          FRONTEND: ${{ secrets.DOCKER_USERNAME }}/chat_app_frontend
+          SHA: ${{ github.sha }}
+          EC2_HOST: ${{ secrets.EC2_HOST }}
+          EC2_USER: ${{ secrets.EC2_USER }}
+
         run: |
-          ssh -o StrictHostKeyChecking=no -i ~/.ssh/ec2_key ubuntu@${{ secrets.EC2_PUBLIC_IP }} "
+          ssh -o StrictHostKeyChecking=no -i ~/.ssh/ec2_key $EC2_USER@$EC2_HOST << EOF
             set -e
+            cd ~/chat_app/chat_app
 
-            cd ~/chat_app
+            echo '--- Pulling new images ---'
+            sudo docker pull $BACKEND:latest || exit 1
+            sudo docker pull $FRONTEND:latest || exit 1
+            
+            echo '--- Updating docker-compose to use new SHA tags ---'
+            sed -i "s|$BACKEND:.*|$BACKEND:${SHA:0:8}|g" docker-compose.yml
+            sed -i "s|$FRONTEND:.*|$FRONTEND:${SHA:0:8}|g" docker-compose.yml
 
-            echo '--- Ensuring env folder exists ---'
-            mkdir -p env
+            echo '--- Bringing app down ---'
+            sudo docker compose down || true
 
-            echo '--- Backing up previous version ---'
-            rm -rf chat_app_prev
-            cp -r chat_app chat_app_prev || true
+            echo '--- Starting app with NEW version ---'
+            if ! sudo docker compose up -d; then
+              echo 'Deployment FAILED — rolling back...'
 
-            echo '--- Updating source code ---'
-            cd chat_app
-            git reset --hard
-            git pull origin main
+              sed -i "s|$BACKEND:${SHA:0:8}|$BACKEND:previous|g" docker-compose.yml
+              sed -i "s|$FRONTEND:${SHA:0:8}|$FRONTEND:previous|g" docker-compose.yml
 
-            echo '--- Copy envs into build context ---'
-            cp ../env/backend.env ./backend/.env
-            cp ../env/frontend.env ./frontend/.env
-
-            echo '--- Loading frontend env variables into shell ---'
-            export \$(grep -v '^#' ../env/frontend.env | xargs)
-
-            echo '--- Stopping running containers ---'
-            sudo docker-compose down || true
-
-            echo '--- Building new containers ---'
-            if ! sudo docker-compose up -d --build; then
-              echo ' Build failed — Rolling back...'
-
-              sudo docker-compose down || true
-              cd ~/chat_app
-
-              rm -rf chat_app
-              mv chat_app_prev chat_app
-
-              echo '--- Starting rollback containers ---'
-              cd chat_app
-              sudo docker-compose up -d
-
+              sudo docker compose up -d
               exit 1
             fi
 
-            echo '--- Cleaning Docker trash ---'
-            sudo docker system prune -af || true
+            echo '--- Mark new version as previous stable ---'
+            sudo docker tag $BACKEND:${SHA:0:8} $BACKEND:previous
+            sudo docker tag $FRONTEND:${SHA:0:8} $FRONTEND:previous
+            sudo docker push $BACKEND:previous
+            sudo docker push $FRONTEND:previous
 
-            echo ' Deployment complete!'
-          "
+            echo '--- Deployment Success ---'
+          EOF
