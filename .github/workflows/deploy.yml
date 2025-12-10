@@ -1,4 +1,4 @@
-name: Auto Deploy to EC2 (with Rollback)
+name: Auto Deploy to EC2 (with Rollback and Safe Env)
 
 on:
   push:
@@ -26,29 +26,40 @@ jobs:
 
             cd ~/chat_app
 
-            echo 'Backing up current version...'
-            rm -rf chat_app_prev
-            cp -r chat_app chat_app_prev
+            echo '--- Ensuring env folder exists (safe from deletion) ---'
+            mkdir -p env
 
-            echo 'Pulling latest code...'
-            cd chat_app
+            echo '--- Backing up previous version (ONLY code, NOT env) ---'
+            rm -rf app_prev
+            cp -r app app_prev || true
+
+            echo '--- Updating source code ---'
+            cd app
+            git reset --hard
             git pull origin main
 
-            echo 'Stopping existing containers...'
-            sudo docker-compose down
+            echo '--- Stopping running containers ---'
+            sudo docker compose down || true
 
-            echo 'Building and starting new version...'
-            if ! sudo docker-compose up -d --build; then
-              echo 'Build failed. Rolling back.'
+            echo '--- Building new containers ---'
+            if ! sudo docker compose up -d --build; then
+              echo ' Build failed — Rolling back...'
+
+              sudo docker compose down || true
               cd ~/chat_app
-              rm -rf chat_app
-              mv chat_app_prev chat_app
-              sudo docker-compose -f chat_app/docker-compose.yml up -d
+
+              rm -rf app
+              mv app_prev app
+
+              echo '--- Starting rollback container ---'
+              cd app
+              sudo docker compose up -d
+
               exit 1
             fi
 
-            echo 'Cleaning unused Docker resources...'
-            sudo docker system prune -af
+            echo '--- Cleaning Docker trash ---'
+            sudo docker system prune -af || true
 
-            echo 'Deployment complete without health checks.'
+            echo ' Deployment complete!'
           "
