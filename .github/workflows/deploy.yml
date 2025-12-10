@@ -24,7 +24,7 @@ jobs:
         run: |
           SHA=$(echo $GITHUB_SHA | cut -c1-8)
 
-          docker build -t $DOCKERHUB_REPO_BACKEND:latest ./backend
+          docker build -t $DOCKERHUB_REPO_BACKEND:latest ./chat_app/chat_app/backend
           docker tag $DOCKERHUB_REPO_BACKEND:latest $DOCKERHUB_REPO_BACKEND:sha-$SHA
 
           docker push $DOCKERHUB_REPO_BACKEND:latest
@@ -36,13 +36,15 @@ jobs:
         run: |
           SHA=$(echo $GITHUB_SHA | cut -c1-8)
 
-          docker build --build-arg VITE_API_URL=$VITE_API_URL -t $DOCKERHUB_REPO_FRONTEND:latest ./frontend
+          docker build \
+            --build-arg VITE_API_URL=$VITE_API_URL \
+            -t $DOCKERHUB_REPO_FRONTEND:latest \
+            ./chat_app/chat_app/frontend
+
           docker tag $DOCKERHUB_REPO_FRONTEND:latest $DOCKERHUB_REPO_FRONTEND:sha-$SHA
 
           docker push $DOCKERHUB_REPO_FRONTEND:latest
           docker push $DOCKERHUB_REPO_FRONTEND:sha-$SHA
-
-
 
   deploy_to_ec2:
     needs: build_and_push
@@ -67,44 +69,40 @@ jobs:
             set -e
             cd ~/chat_app/chat_app
 
-            echo '--- Copying env files into runtime ---'
+            echo '--- Copying env files ---'
             cp -f ../env/backend.env ./backend/.env
             cp -f ../env/frontend.env ./frontend/.env || true
 
-            echo '--- Pulling new SHA images ---'
+            echo '--- Pulling new Docker images ---'
             sudo docker pull $DOCKERHUB_REPO_BACKEND:sha-$SHA_SHORT
             sudo docker pull $DOCKERHUB_REPO_FRONTEND:sha-$SHA_SHORT
 
-            echo '--- Updating docker-compose to use new SHA ---'
+            echo '--- Updating docker-compose version tags ---'
             sudo sed -i "s|rajkrr/chat_app_backend:.*|rajkrr/chat_app_backend:sha-$SHA_SHORT|g" docker-compose.yml
             sudo sed -i "s|rajkrr/chat_app_frontend:.*|rajkrr/chat_app_frontend:sha-$SHA_SHORT|g" docker-compose.yml
 
-            echo '--- Bringing app DOWN ---'
-            sudo docker-compose down || true
+            echo '--- Restarting docker-compose ---'
+            sudo docker compose down || true
 
-            echo '--- Starting app with NEW version ---'
-            if ! sudo docker-compose up -d; then
-              echo 'Deploy FAILED! Rolling back...'
+            if ! sudo docker compose up -d; then
+              echo 'Deploy FAILED. Rolling back...'
 
               sudo sed -i "s|rajkrr/chat_app_backend:sha-$SHA_SHORT|rajkrr/chat_app_backend:previous|g" docker-compose.yml
               sudo sed -i "s|rajkrr/chat_app_frontend:sha-$SHA_SHORT|rajkrr/chat_app_frontend:previous|g" docker-compose.yml
 
-              sudo docker-compose up -d
+              sudo docker compose up -d
               exit 1
             fi
 
-            echo '--- Deployment SUCCESS. Marking SHA as previous stable ---'
-            sudo docker pull $DOCKERHUB_REPO_BACKEND:sha-$SHA_SHORT
-            sudo docker pull $DOCKERHUB_REPO_FRONTEND:sha-$SHA_SHORT
-
+            echo '--- Deployment SUCCESS. Marking previous stable ---'
             sudo docker tag $DOCKERHUB_REPO_BACKEND:sha-$SHA_SHORT $DOCKERHUB_REPO_BACKEND:previous
             sudo docker tag $DOCKERHUB_REPO_FRONTEND:sha-$SHA_SHORT $DOCKERHUB_REPO_FRONTEND:previous
 
             sudo docker push $DOCKERHUB_REPO_BACKEND:previous
             sudo docker push $DOCKERHUB_REPO_FRONTEND:previous
 
-            echo '--- Cleaning unused Docker images ---'
+            echo '--- Cleanup unused Docker images ---'
             sudo docker image prune -af || true
 
-            echo '--- DEPLOYMENT FINISHED SUCCESSFULLY ---'
+            echo '--- DONE ---'
           EOF
