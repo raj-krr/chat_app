@@ -11,7 +11,7 @@ import { logoutOptions, options } from "../../utils/cookie";
  export const register = async (req: Request, res: Response) => {
     const { email, username, password } = req.body;
     if (!email || !username || !password) {
-        res.status(400).json({ success: false, msg: "All fields are required" });
+     return res.status(400).json({ success: false, msg: "All fields are required" });
     };
     try {
         const conflict = await UserMOdel.findOne({
@@ -89,12 +89,12 @@ export const resendVerificationCode= async (req: Request, res: Response) => {
         if (!user) {
             return res.status(400).json({ success: false, msg: "User not found" })
         };
-        if (user.isVerified = true) {
+        if (user.isVerified ===true) {
             return res.status(200).json({ success: false, msg: "User already verified" })
         };
         const code = generateCode(6);
         user.verificationCode = code;
-        user.verificationCodeExpires = new Date(Date.now() + 5 * 60 * 1000);
+        user.verificationCodeExpires = new Date(Date.now() + 5 * 60 * 60);
         user.updatedAt = new Date();
     try {
         await user.save();
