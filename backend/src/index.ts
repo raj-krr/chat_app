@@ -11,12 +11,12 @@ import { healthCheck } from "./controllers/health.controller";
 
 const app: Application = express();
 
-app.use(express.json());
-app.use(cookieParser());
 app.use(cors({
   origin: process.env.FRONTEND_URL,
   credentials: true,
 }));
+app.use(express.json());
+app.use(cookieParser());
 
 mongoDb();
 

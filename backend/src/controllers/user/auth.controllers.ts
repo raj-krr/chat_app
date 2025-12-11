@@ -232,11 +232,19 @@ export const logout = async (req: Request, res: Response) => {
     }
 };
 
-export const checkAuth = (req:Request, res:Response) => {
-  try {
-    res.status(200).json(req.user);
-  } catch (error) {
-    console.log("Error in checkAuth controller", error);
-    res.status(500).json({ message: "Internal Server Error" });
+export const checkAuth = (req: Request, res: Response) => {
+
+  res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate");
+  res.setHeader("Pragma", "no-cache");
+  res.setHeader("Expires", "0");
+
+  if (!req.user) {
+    return res.status(401).json({ authenticated: false });
   }
+
+  return res.status(200).json({
+    authenticated: true,
+    user: req.user 
+  });
 };
+
