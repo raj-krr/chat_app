@@ -7,11 +7,13 @@ import ForgotPassword from "./pages/ForgotPassword";
 import VerifyEmail from "../src/pages/VerifyEmail";
 import ProtectedRoute from "./routes/ProtectedRoute";
 import ResetPassword from "./pages/ResetPassword";
+import Home from "./pages/HomePage";
 
 function App() {
   return (
 
-      <Routes>
+    <Routes>
+      <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />

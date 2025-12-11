@@ -1,14 +1,22 @@
-import { StrictMode } from 'react';
-import { createRoot } from 'react-dom/client';
-import './index.css';
-import App from './App.tsx';
-import {BrowserRouter} from "react-router-dom"
+import React from "react";
+import ReactDOM from "react-dom/client";
+import App from "./App";
+import { BrowserRouter } from "react-router-dom";
+import { MantineProvider } from "@mantine/core";
+import "./index.css"; // Tailwind (if you use it)
+import '@mantine/core/styles.css';
 
-createRoot(document.getElementById('root')!).render(
-  <StrictMode>
+ReactDOM.createRoot(document.getElementById("root")!).render(
+  <React.StrictMode>
     <BrowserRouter>
-      
-      <App />
+    <MantineProvider
+  theme={{
+    fontFamily: 'Inter, sans-serif',
+    primaryColor: 'indigo',
+  }}
+>
+  <App />
+</MantineProvider>
     </BrowserRouter>
-  </StrictMode>,
+  </React.StrictMode>
 );
