@@ -3,6 +3,17 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Mobile gradient softening fix */
+@media (max-width: 640px) {
+  .chitchat-bg {
+    background: linear-gradient(
+      to bottom right,
+      rgba(129, 140, 248, 0.75),   /* lighter indigo-400 */
+      rgba(168, 85, 247, 0.75),    /* lighter purple-400 */
+      rgba(236, 72, 153, 0.75)     /* lighter pink-400 */
+    ) !important;
+  }
+}
 
 .chitchat-title-glow {
   animation: chitchatGlow 3s ease-in-out infinite alternate;

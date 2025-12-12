@@ -5,8 +5,14 @@ export default function HomePage() {
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 p-4 sm:p-6 relative overflow-hidden">
-
+    <div
+      className="
+        min-h-screen flex items-center justify-center
+        bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500
+        chitchat-bg
+        p-4 sm:p-6 relative overflow-hidden
+      "
+    >
       {/* Background animated grid */}
       <div className="absolute inset-0 bg-grid opacity-20 sm:opacity-25 pointer-events-none"></div>
 
@@ -16,19 +22,18 @@ export default function HomePage() {
           w-full max-w-md sm:max-w-lg 
           rounded-2xl sm:rounded-3xl 
           p-8 sm:p-8 
-          pt-10 pb-10              /* MORE vertical padding on mobile */
+          pt-10 pb-10
           backdrop-blur-2xl 
           bg-white/30 border border-white/40 
           shadow-xl
           fade-in glow-hover tilt-hover
           relative z-10
 
-          min-h-[55vh] sm:min-h-0   /* taller card on mobile */
-          flex flex-col justify-center /* center content vertically */
+          min-h-[55vh] sm:min-h-0
+          flex flex-col justify-center
         "
       >
         <div className="text-center text-gray-1000">
-
           {/* Title */}
           <h1
             className="
@@ -123,7 +128,6 @@ export default function HomePage() {
               Create Account
             </Button>
           </div>
-
         </div>
       </div>
     </div>
