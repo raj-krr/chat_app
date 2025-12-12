@@ -42,7 +42,7 @@ export default function HomePage() {
               drop-shadow-[0_0_10px_rgba(255,255,255,0.7)]
             "
           >
-            ChitChat 💬
+            ChitChat
           </h1>
 
           {/* MOBILE SHORT TEXT */}

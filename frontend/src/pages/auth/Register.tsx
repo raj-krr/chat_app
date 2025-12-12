@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Button, TextInput, PasswordInput, Text } from "@mantine/core";
 import { useNavigate } from "react-router-dom";
-import { registerApi } from "../apis/auth.api";
+import { registerApi } from "../../apis/auth.api";
 
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const usernameRegex = /^[a-zA-Z0-9._-]{3,30}$/;
@@ -126,12 +126,12 @@ export default function RegisterPage() {
             drop-shadow-[0_0_12px_rgba(255,255,255,0.6)]
           "
         >
-          Create Account ✨
+          Create Account
         </h1>
-
+{/* 
         <Text className="text-center text-gray-900 mb-2">
           Join ChitChat — fast, modern & beautiful.
-        </Text>
+        </Text> */}
 
         {/* INPUTS */}
         <div className="space-y-4">

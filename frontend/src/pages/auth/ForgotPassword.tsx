@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { forgotPasswordApi } from "../apis/auth.api";
+import { forgotPasswordApi } from "../../apis/auth.api";
 import { Button, TextInput, Text } from "@mantine/core";
 
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -83,7 +83,7 @@ export default function ForgotPassword() {
             drop-shadow-[0_0_12px_rgba(255,255,255,0.6)]
           "
         >
-          Forgot Password 🔑
+          Forgot Password 
         </h1>
 
         <Text className="text-center text-gray-900">

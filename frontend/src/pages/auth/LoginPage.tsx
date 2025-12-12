@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Button, TextInput, PasswordInput, Group, Text } from "@mantine/core";
 import { useNavigate } from "react-router-dom";
-import { loginApi } from "../apis/auth.api";
+import { loginApi } from "../../apis/auth.api";
 
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const usernameRegex = /^[a-zA-Z0-9._-]+$/;
@@ -101,7 +101,7 @@ export default function LoginPage() {
             drop-shadow-[0_0_12px_rgba(255,255,255,0.6)]
           "
         >
-          Login 🔐
+          Welcome Back 
         </h1>
 
         {/* Input Fields */}

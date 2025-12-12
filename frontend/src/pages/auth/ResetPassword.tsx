@@ -1,6 +1,6 @@
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { useState, useEffect, useRef } from "react";
-import { forgotPasswordApi, resetPasswordApi } from "../apis/auth.api";
+import { forgotPasswordApi, resetPasswordApi } from "../../apis/auth.api";
 import { Button, PasswordInput, Text } from "@mantine/core";
 
 export default function ResetPassword() {
@@ -143,7 +143,7 @@ export default function ResetPassword() {
             drop-shadow-[0_0_12px_rgba(255,255,255,0.6)]
           "
         >
-          Reset Password 🔄
+          Reset Password
         </h1>
 
         <Text className="text-center text-gray-900 text-sm sm:text-base">

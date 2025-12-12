@@ -1,6 +1,6 @@
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useState, useEffect, useRef } from "react";
-import { verifyEmailApi, resendVerificationOtpApi } from "../apis/auth.api";
+import { verifyEmailApi, resendVerificationOtpApi } from "../../apis/auth.api";
 import { Button, Text } from "@mantine/core";
 
 export default function VerifyEmail() {
@@ -123,7 +123,7 @@ export default function VerifyEmail() {
               drop-shadow-[0_0_12px_rgba(255,255,255,0.6)]
             "
           >
-            Verify Email 🔐
+            Verify Email
           </h1>
 
           <Text className="text-gray-900 mt-4 text-sm sm:text-base">
