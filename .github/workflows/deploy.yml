@@ -76,7 +76,7 @@ jobs:
             cd ~/chat_app/chat_app
 
             echo '--- Pulling latest code from GitHub (sync compose) ---'
-            git pull     # 🔥 Keeps docker-compose.yml synced with GitHub
+            git pull     #  Keeps docker-compose.yml synced with GitHub
 
             echo '--- Copying env files ---'
             cp -f ../env/backend.env ./backend/.env
