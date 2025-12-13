@@ -15,6 +15,15 @@
   }
 }
 
+* {
+  pointer-events: auto;
+}
+
+body::before,
+body::after {
+  pointer-events: none;
+}
+
 .chitchat-title-glow {
   animation: chitchatGlow 3s ease-in-out infinite alternate;
 }

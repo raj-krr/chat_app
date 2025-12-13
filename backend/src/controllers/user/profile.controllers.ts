@@ -11,41 +11,68 @@ import {
 
 
 export const updateProfile = async (req: Request, res: Response) => {
-    try {
-        const { firstName, lastName, dob, gender ,bio} = req.body;
-        const userID = req.user?.userId;
+  try {
+    const { firstName, lastName, dob, gender, bio } = req.body;
+    const userID = req.user?.userId;
 
-        if (!userID) {
-            return res.status(401).json({ success: false, msg: "unauthorised" })
-        }
+    if (!userID) {
+      return res.status(401).json({ success: false, msg: "unauthorised" });
+    }
+
+    const user = await UserMOdel.findById(userID);
+    if (!user) {
+      return res.status(404).json({ success: false, msg: "User not found" });
+    }
+
+    const updateData: any = {
+      firstName,
+      lastName,
+      dob,
+      bio,
+    };
+
+
+    if (gender) {
+      const genderKey = gender.toLowerCase();
+      updateData.gender = genderKey;
+
+      if (!user.avatar) {
         const avatarFolders: Record<string, string[]> = {
-      male: ["Boy05.png", "Boy06.png", "Boy13.png", "Boy14.png", "Boy18.png", "Boy19.png", "Boy20.png","Boy02.png"],
-      female: ["Girl08.png", "Girl01.png", "Girl11.png", "Girl19.png", "Girl18.png", "Girl04.png", "Girl06.png", "Girl14.png", "Girl03.png"],
-      other: ["avatar1.png", "avatar2.png", "avatar3.png", "avatar4.png", "avatar5.png"],
-    };
+          male: ["Boy05.png", "Boy06.png", "Boy13.png", "Boy14.png", "Boy18.png", "Boy19.png", "Boy20.png", "Boy02.png"],
+          female: ["Girl08.png", "Girl01.png", "Girl11.png", "Girl19.png", "Girl18.png", "Girl04.png", "Girl06.png", "Girl14.png", "Girl03.png"],
+          other: ["avatar1.png", "avatar2.png", "avatar3.png", "avatar4.png", "avatar5.png"],
+        };
 
-    const genderKey = gender?.toLowerCase() || "other";
-    const fileList = avatarFolders[genderKey] || avatarFolders.other;
+        const fileList =
+          avatarFolders[genderKey] || avatarFolders.other;
+
+        const index =
+          Array.from(userID.toString()).reduce(
+            (sum, c) => sum + c.charCodeAt(0),
+            0
+          ) % fileList.length;
+
+        updateData.avatar = `https://${process.env.AWS_BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/${genderKey}/${fileList[index]}`;
+      }
+    }
 
 
-    const index = Array.from(userID.toString())
-      .reduce((sum, c) => sum + c.charCodeAt(0), 0) % fileList.length;
+    await UserMOdel.findByIdAndUpdate(userID, updateData, {
+      new: true,
+    }).select("-password -refreshToken");
 
-    const avatarUrl = `https://${process.env.AWS_BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/${genderKey}/${fileList[index]}`;
+    return res
+      .status(200)
+      .json({ success: true, msg: "Profile updated successfully" });
 
-        const update = await UserMOdel.findByIdAndUpdate(
-            userID,
-            { firstName, lastName, dob, gender:genderKey ,bio, avatar:avatarUrl},
-            { new: true },
-        ).select("-passwoed -refreshToken");
-        update?.save();
-
-        return res.status(200).json({ success: true, msg: "profile updated successfully" });
-    } catch (error) {
-        return res.status(500).json({ success: false, msg: "Internal server error" });
-    };
-
+  } catch (error) {
+    console.error(error);
+    return res
+      .status(500)
+      .json({ success: false, msg: "Internal server error" });
+  }
 };
+
 
  export const uploadProfilePhoto = async (req: Request, res: Response) => {
   try {

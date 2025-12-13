@@ -3,8 +3,8 @@ import jwt from "jsonwebtoken";
 import { decode } from "punycode";
 
 interface TokenPayload{
-    userId: String,
-    email:String,
+    userId: string,
+    email:string,
 }
 
 declare global {

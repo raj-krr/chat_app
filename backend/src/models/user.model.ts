@@ -1,6 +1,37 @@
-import mongoose from "mongoose";
+import mongoose, { Types } from "mongoose";
 
-const userSchema = new mongoose.Schema(
+export interface IUser extends Document {
+  _id: Types.ObjectId; 
+  email: string;
+  username: string;
+  password: string;
+
+  isVerified: boolean;
+
+  verificationCode?: string;
+  verificationCodeExpires?: Date;
+
+  resetPasswordOtp?: string;
+  resetPasswordOtpexpires?: Date;
+
+  refreshToken?: string;
+  refreshTokenExpires?: Date;
+
+  firstName?: string;
+  lastName?: string;
+  gender?: "male" | "female" | "other";
+  dob?: Date;
+  bio?: string;
+  avatar?: string;
+
+  friends: Types.ObjectId[];
+  blockedUsers: Types.ObjectId[];
+
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+const userSchema = new mongoose.Schema<IUser>(
     {
         email: {
             type: String,
@@ -33,9 +64,19 @@ const userSchema = new mongoose.Schema(
         dob: { type: Date },
         bio:{type:String},
         avatar: { type: String },
+
+        friends: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+        }],
+        blockedUsers: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+          }],
+
     },
     { timestamps: true }
 );
 
-const UserMOdel = mongoose.model("User", userSchema);
+const UserMOdel = mongoose.model<IUser>("User", userSchema);
 export default UserMOdel;
