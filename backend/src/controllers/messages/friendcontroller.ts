@@ -106,7 +106,7 @@ export const getMyFriends = async (req: Request, res: Response) => {
   try {
     const myId = req.user?.userId;
 
-    const me = await UserMOdel.findById(myId).select("friends");
+    const me = await UserMOdel.findById(myId).select("friends")
     if (!me) {
       return res.status(404).json({ success: false, msg: "User not found" });
     }

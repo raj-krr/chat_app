@@ -2,17 +2,20 @@ import { useEffect, useState } from "react";
 import { getAllUsersApi } from "../../apis/friend.api";
 import { getChatListApi } from "../../apis/chat.api";
 import { socket } from "../../apis/socket";
+import { getMyFriendsApi } from "../../apis/friend.api";
 
 export function useSidebar() {
   const [chats, setChats] = useState<any[]>([]);
   const [allUsers, setAllUsers] = useState<any[]>([]);
   const [query, setQuery] = useState("");
   const [mode, setMode] = useState<"chats" | "requests">("chats");
+  const [friends, setFriends] = useState<any[]>([]);
 
   /* -------- INITIAL LOAD -------- */
   useEffect(() => {
     loadChats();
     loadAllUsers();
+      loadFriends();
   }, []);
 
   const loadChats = async () => {
@@ -32,6 +35,15 @@ export function useSidebar() {
       setAllUsers([]);
     }
   };
+
+  const loadFriends = async () => {
+  try {
+    const res = await getMyFriendsApi();
+    setFriends(res.data.users || []);
+  } catch {
+    setFriends([]);
+  }
+};
 
   /* -------- SOCKET: UNREAD -------- */
     useEffect(() => {
@@ -56,12 +68,12 @@ export function useSidebar() {
                 });
 
                 return updated
-                    ? [...next].sort(
-                        (a, b) =>
-                            new Date(b.lastMessageAt).getTime() -
-                            new Date(a.lastMessageAt).getTime()
-                    )
-                    : prev;
+  ? [
+      next.find(c => c.user?._id?.toString() === from.toString()),
+      ...next.filter(c => c.user?._id?.toString() !== from.toString()),
+    ].filter(Boolean)
+  : prev;
+
             });
         };
 
@@ -99,6 +111,7 @@ export function useSidebar() {
     chats,
     setChats,
     allUsers,
+    friends,
     filteredUsers,
     query,
     setQuery,

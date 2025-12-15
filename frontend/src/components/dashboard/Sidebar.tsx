@@ -13,7 +13,7 @@ export default function Sidebar({ onSelectChat }: any) {
   const {
     chats,
     setChats,
-    allUsers,
+    friends,
     filteredUsers,
     query,
     setQuery,
@@ -24,11 +24,17 @@ export default function Sidebar({ onSelectChat }: any) {
 
   const [showFriendsPicker, setShowFriendsPicker] = useState(false);
 
+
   return (
     <div
       className="
         relative h-full flex flex-col
-        text-white border-r border-white/20 bg-white/5
+        text-white  bg-white/5
+        border-r border-white/10 shadow-[inset_-1px_0_0_rgba(255,255,255,0.05)]
+        after:content-[''] after:absolute after:bottom-0
+after:h-6 after:w-full
+after:bg-gradient-to-t after:from-black/40 after:to-transparent
+
       "
     >
       {/* 🔍 SEARCH */}
@@ -84,22 +90,24 @@ export default function Sidebar({ onSelectChat }: any) {
         {mode === "chats" &&
           !query &&
           chats.map(chat => (
-            <ChatListItem
-              key={chat.user?._id}
-              user={chat.user}
-              unreadCount={chat.unreadCount || 0}
-              lastMessage={chat.lastMessage}
-              onClick={() => {
-                setChats(prev =>
-                  prev.map(c =>
-                    c.user?._id === chat.user?._id
-                      ? { ...c, unreadCount: 0 }
-                      : c
-                  )
-                );
-                onSelectChat(chat.user);
-              }}
-            />
+           <ChatListItem
+  key={chat.user?._id}
+  user={chat.user}
+  unreadCount={chat.unreadCount || 0}
+  lastMessage={chat.lastMessage?.text}
+  lastMessageAt={chat.lastMessageAt}
+  onClick={() => {
+    setChats(prev =>
+      prev.map(c =>
+        c.user?._id === chat.user?._id
+          ? { ...c, unreadCount: 0 }
+          : c
+      )
+    );
+    onSelectChat(chat.user);
+  }}
+/>
+
           ))}
       </div>
 
@@ -110,7 +118,7 @@ export default function Sidebar({ onSelectChat }: any) {
 
       {showFriendsPicker && (
         <FriendsPicker
-          friends={allUsers}
+          friends={friends}
           onSelect={(f: any) => {
             onSelectChat(f);
             setShowFriendsPicker(false);
