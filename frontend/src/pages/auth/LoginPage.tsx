@@ -55,10 +55,12 @@ export default function LoginPage() {
   };
 
   const handleLogin = async () => {
+ 
     if (!validateInputs()) return;
 
     try {
-      await loginApi({ identifier, password });
+   await loginApi({ identifier, password });
+  
       navigate("/dashboard");
     } catch (err: any) {
       const msg = err.response?.data?.msg;

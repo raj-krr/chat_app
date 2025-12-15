@@ -1,9 +1,5 @@
-import { useEffect, useState } from "react";
 import { TextInput } from "@mantine/core";
-import {
-  getMyFriendsApi,
-  getAllUsersApi,
-} from "../../apis/friend.api";
+import { useState } from "react";
 
 import ChatListItem from "./ChatListItem";
 import SearchResults from "./SearchResults";
@@ -11,98 +7,74 @@ import FriendRequests from "./FriendRequests";
 import FriendsBubble from "./FriendsBubble";
 import FriendsPicker from "./FriendsPicker";
 
+import { useSidebar } from "./useSidebar";
+
 export default function Sidebar({ onSelectChat }: any) {
-  const [friends, setFriends] = useState<any[]>([]);
-  const [allUsers, setAllUsers] = useState<any[]>([]);
-  const [query, setQuery] = useState("");
-  const [mode, setMode] = useState<"chats" | "requests">("chats");
+  const {
+    chats,
+    setChats,
+    allUsers,
+    filteredUsers,
+    query,
+    setQuery,
+    mode,
+    setMode,
+    loadChats,
+  } = useSidebar();
+
   const [showFriendsPicker, setShowFriendsPicker] = useState(false);
-
-  /* ---------------- LOAD DATA ---------------- */
-  useEffect(() => {
-    loadFriends();
-    loadAllUsers();
-  }, []);
-
-  const loadFriends = async () => {
-    try {
-      const res = await getMyFriendsApi();
-      setFriends(Array.isArray(res.data?.users) ? res.data.users : []);
-    } catch {
-      setFriends([]);
-    }
-  };
-
-  const loadAllUsers = async () => {
-    try {
-      const res = await getAllUsersApi();
-      setAllUsers(Array.isArray(res.data?.users) ? res.data.users : []);
-    } catch {
-      setAllUsers([]);
-    }
-  };
-
-  /* ---------------- SEARCH ---------------- */
-  const filteredUsers = query
-    ? allUsers.filter(
-        (u) =>
-          u.username?.toLowerCase().includes(query.toLowerCase()) ||
-          u.email?.toLowerCase().includes(query.toLowerCase())
-      )
-    : [];
 
   return (
     <div
       className="
-        relative
-        pointer-events-auto
-        p-4
-        border-r border-white/20
-        text-white
-        h-full
-        overflow-y-auto
-        scroll-smooth
-        z-30
+        relative h-full flex flex-col
+        text-white border-r border-white/20 bg-white/5
       "
     >
-      {/* SEARCH */}
-      <TextInput
-        placeholder="Search users"
-        value={query}
-        onChange={(e) => setQuery(e.target.value)}
-      />
+      {/* 🔍 SEARCH */}
+      <div className="sticky top-0 z-10 bg-white/10 backdrop-blur-xl p-3">
+        <TextInput
+          placeholder="Search users"
+          value={query}
+          onChange={e => setQuery(e.target.value)}
+          radius="md"
+        />
 
-      {/* MODE SWITCH */}
-      <div className="flex gap-2 mt-3">
-        <button
-          onClick={() => {
-            setMode("chats");
-            setQuery("");
-          }}
-          className={`text-xs px-3 py-1 rounded-lg ${
-            mode === "chats" ? "bg-indigo-500" : "bg-white/10"
-          }`}
-        >
-          Chats
-        </button>
+        <div className="flex gap-2 mt-3">
+          <button
+            onClick={() => {
+              setMode("chats");
+              setQuery("");
+            }}
+            className={`text-xs px-3 py-1 rounded-lg ${
+              mode === "chats"
+                ? "bg-indigo-500"
+                : "bg-white/10 hover:bg-white/20"
+            }`}
+          >
+            Chats
+          </button>
 
-        <button
-          onClick={() => {
-            setMode("requests");
-            setQuery("");
-          }}
-          className={`text-xs px-3 py-1 rounded-lg ${
-            mode === "requests" ? "bg-indigo-500" : "bg-white/10"
-          }`}
-        >
-          Requests
-        </button>
+          <button
+            onClick={() => {
+              setMode("requests");
+              setQuery("");
+            }}
+            className={`text-xs px-3 py-1 rounded-lg ${
+              mode === "requests"
+                ? "bg-indigo-500"
+                : "bg-white/10 hover:bg-white/20"
+            }`}
+          >
+            Requests
+          </button>
+        </div>
       </div>
 
-      {/* CONTENT */}
-      <div className="mt-4 space-y-2">
+      {/* 📃 LIST */}
+      <div className="flex-1 overflow-y-auto px-2 py-3 space-y-2">
         {mode === "requests" && (
-          <FriendRequests onAccepted={loadFriends} />
+          <FriendRequests onAccepted={loadChats} />
         )}
 
         {mode === "chats" && query && (
@@ -111,29 +83,34 @@ export default function Sidebar({ onSelectChat }: any) {
 
         {mode === "chats" &&
           !query &&
-          friends.map((f) => (
+          chats.map(chat => (
             <ChatListItem
-              key={f._id}
-              user={f}
-              onClick={() => onSelectChat(f)}
+              key={chat.user?._id}
+              user={chat.user}
+              unreadCount={chat.unreadCount || 0}
+              lastMessage={chat.lastMessage}
+              onClick={() => {
+                setChats(prev =>
+                  prev.map(c =>
+                    c.user?._id === chat.user?._id
+                      ? { ...c, unreadCount: 0 }
+                      : c
+                  )
+                );
+                onSelectChat(chat.user);
+              }}
             />
           ))}
       </div>
 
-      {/* DESKTOP NEW CHAT (BOTTOM RIGHT INSIDE SIDEBAR) */}
-      <div className="hidden md:block absolute bottom-4 right-4">
+      {/* ➕ NEW CHAT */}
+      <div className="absolute bottom-4 right-4">
         <FriendsBubble onOpen={() => setShowFriendsPicker(true)} />
       </div>
 
-      {/* MOBILE NEW CHAT (FLOATING FIXED) */}
-      <div className="md:hidden fixed bottom-6 right-6 z-50">
-        <FriendsBubble onOpen={() => setShowFriendsPicker(true)} />
-      </div>
-
-      {/* FRIENDS PICKER MODAL */}
       {showFriendsPicker && (
         <FriendsPicker
-          friends={friends}
+          friends={allUsers}
           onSelect={(f: any) => {
             onSelectChat(f);
             setShowFriendsPicker(false);

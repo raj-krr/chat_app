@@ -7,38 +7,36 @@ import AppNavbar from "../components/layout/AppNavbar";
 export default function DashboardPage() {
   const [selectedChat, setSelectedChat] = useState<any>(null);
 
+  const isMobileChatOpen = Boolean(selectedChat);
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500">
-      
-<AppNavbar active="home" />
-      {/* MAIN WRAPPER */}
+
+      {/* NAVBAR (hidden only during mobile chat) */}
+      {!isMobileChatOpen && <AppNavbar active="home" />}
+
       <div className="pt-24 px-4">
-        {/* GLASS CONTAINER */}
         <div
           className="
-            pointer-events-none
             max-w-7xl mx-auto
+            h-[calc(100vh-7rem)]
             rounded-3xl
             bg-white/10 backdrop-blur-2xl
             border border-white/20
             shadow-2xl
-            h-[calc(100vh-7rem)]
             overflow-hidden
           "
         >
-          {/* REAL LAYOUT WRAPPER (RE-ENABLE CLICKS) */}
-          <div
-            className="
-              pointer-events-auto
-              h-full w-full
-              grid grid-cols-1 md:grid-cols-[320px_1fr]
-            "
-          >
-            {/* SIDEBAR */}
-            <Sidebar onSelectChat={setSelectedChat} />
+          {/* MAIN GRID */}
+          <div className="h-full grid grid-cols-1 md:grid-cols-[320px_1fr]">
 
-            {/* RIGHT PANEL (DESKTOP ONLY) */}
-            <div className="hidden md:block">
+            {/* SIDEBAR */}
+            <div className={`${isMobileChatOpen ? "hidden md:block" : ""}`}>
+              <Sidebar onSelectChat={setSelectedChat} />
+            </div>
+
+            {/* CHAT AREA */}
+            <div className="hidden md:flex flex-col h-full">
               {selectedChat ? (
                 <ChatWindow
                   chat={selectedChat}
@@ -48,11 +46,12 @@ export default function DashboardPage() {
                 <EmptyState />
               )}
             </div>
+
           </div>
         </div>
       </div>
 
-      {/* MOBILE FULLSCREEN CHAT */}
+      {/* MOBILE CHAT FULLSCREEN */}
       {selectedChat && (
         <div className="
           md:hidden fixed inset-0 z-[60]

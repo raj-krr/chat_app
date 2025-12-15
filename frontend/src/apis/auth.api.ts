@@ -38,6 +38,18 @@ export const resetPasswordApi = (data: {
   return axiosInstance.post("/auth/updatepassword", data);
 };
 
+
 export const logoutApi = () => {
-  return axiosInstance.post("/auth/logout");
+  return axiosInstance.post(
+    "/auth/logout",
+    {},
+    { withCredentials: true }
+  );
+};
+export const refreshApi = () => {
+  return axiosInstance.post(
+    "/auth/refresh",
+    {},
+    { withCredentials: true }
+  );
 };

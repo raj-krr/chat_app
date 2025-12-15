@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-
+import { logoutApi } from "../../apis/auth.api";
+import { socket } from "../../apis/socket";
 type Props = {
   active?: "home" | "profile" | "notifications";
   unreadCount?: number;
@@ -13,11 +14,20 @@ export default function AppNavbar({
   const navigate = useNavigate();
   const [menuOpen, setMenuOpen] = useState(false);
 
-  const logout = () => {
-    localStorage.removeItem("token");
-    navigate("/login");
-  };
+ const logout = async () => {
+  try {
+    await logoutApi(); 
 
+    if (socket.connected) {
+      socket.disconnect();
+    }
+
+    navigate("/login");
+  } catch (err) {
+    console.error("Logout failed", err);
+  }
+  };
+  
   const go = (path: string) => {
     setMenuOpen(false);
     navigate(path);

@@ -1,5 +1,7 @@
+import { Routes, Route } from "react-router-dom";
+import { useEffect } from "react";
+import { socket } from "../src/apis/socket";
 
-import {  Routes, Route } from "react-router-dom";
 import Login from "./pages/auth/LoginPage";
 import Register from "./pages/auth/Register";
 import Dashboard from "./pages/DashboardPage";
@@ -10,26 +12,49 @@ import ResetPassword from "./pages/auth/ResetPassword";
 import Home from "./pages/HomePage";
 import ProfilePage from "./pages/ProfilePage";
 import NotificationsPage from "./pages/NotificationsPage";
+import { useAuth } from "./context/AuthContext";
+
 
 function App() {
-  return (
+  const { isAuth, user } = useAuth();
 
+  useEffect(() => {
+    if (isAuth && user) {
+      if (!socket.connected) {
+        socket.connect();
+      }
+    } else {
+      socket.disconnect();
+    }
+
+    return () => {
+      socket.disconnect();
+    };
+  }, [isAuth, user]);
+
+
+  return (
     <Routes>
       <Route path="/" element={<Home />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
-        <Route path="/forgot-password" element={<ForgotPassword />} />
-        <Route path="/reset-password" element={<ResetPassword />} />
-        <Route path="/verify-email" element={<VerifyEmail />} />
+      <Route path="/login" element={<Login />} />
+      <Route path="/register" element={<Register />} />
+      <Route path="/forgot-password" element={<ForgotPassword />} />
+      <Route path="/reset-password" element={<ResetPassword />} />
+      <Route path="/verify-email" element={<VerifyEmail />} />
+
       <Route path="/profile" element={<ProfilePage />} />
-        <Route path="/notifications" element={<NotificationsPage />} />
-       
-        {/* Dashboard should be protected */}
-        <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-      </Routes>
-  
+      <Route path="/notifications" element={<NotificationsPage />} />
+
+      <Route
+        path="/dashboard"
+        element={
+          <ProtectedRoute>
+            <Dashboard />
+          </ProtectedRoute>
+        }
+      />
+    </Routes>
   );
 }
 
 export default App;
-

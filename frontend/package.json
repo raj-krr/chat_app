@@ -15,14 +15,18 @@
     "@mantine/hooks": "^8.3.10",
     "@mantine/notifications": "^8.3.10",
     "@types/dotenv": "^6.1.1",
+    "@types/js-cookie": "^3.0.6",
+    "@types/socket.io-client": "^1.4.36",
     "axios": "^1.13.2",
     "daisyui": "^5.5.8",
     "dotenv": "^17.2.3",
+    "js-cookie": "^3.0.5",
     "lucide-react": "^0.556.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "react-hot-toast": "^2.6.0",
     "react-router-dom": "^7.10.1",
+    "socket.io-client": "^4.8.1",
     "zustand": "^5.0.9"
   },
   "devDependencies": {

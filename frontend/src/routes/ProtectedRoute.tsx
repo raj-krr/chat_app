@@ -1,27 +1,18 @@
-import { useEffect, useState } from "react";
 import { Navigate } from "react-router-dom";
-import { checkAuthApi } from "../apis/auth.api";
+import { useAuth } from "../context/AuthContext";
 
-function ProtectedRoute({ children }: { children:React.ReactNode }) {
-  const [isAuth, setIsAuth] = useState<boolean | null>(null);
+function ProtectedRoute({ children }: { children: React.ReactNode }) {
+  const { isAuth } = useAuth();
 
-  useEffect(() => {
-    const check = async () => {
-      try {
-        await checkAuthApi();
-        setIsAuth(true);
-      } catch (e) {
-        setIsAuth(false);
-      }
-    };
+  if (isAuth === null) {
+    return <p>Checking session...</p>;
+  }
 
-    check();
-  }, []);
+  if (isAuth === false) {
+    return <Navigate to="/login" replace />;
+  }
 
-  if (isAuth === null) return <p>Loading...</p>;
-  if (isAuth === false) return <Navigate to="/login" />;
-
-  return children;
+  return <>{children}</>;
 }
 
 export default ProtectedRoute;
