@@ -31,9 +31,9 @@ export const authMiddleware = async (req: Request, res: Response, next: NextFunc
         next();
 
 
-    } catch (error) {
+    } catch (error :any) {
     
-        return res.status(401).json({ success: false, msg: "Invalid token provided", error })
+        return res.status(401).json({ success: false, msg: "accessToken expired", error: error.name });
        
     };
 };

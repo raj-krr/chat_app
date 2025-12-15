@@ -19,7 +19,32 @@ export default function ChatWindow({
   };
 
   useEffect(() => {
-    loadMessages();
+    const onNewMessage = ({ message }: any) => {
+      if (!message?._id) return;
+
+    const otherUserId = chat._id;
+
+    if (
+      message.senderId?.toString() === otherUserId ||
+      message.receiverId?.toString() === otherUserId
+    ) {
+      setMessages((prev) => mergeUniqueMessages(prev, [message]));
+
+      if (shouldAutoScrollRef.current) {
+        requestAnimationFrame(() => {
+          messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+        });
+      } else {
+        // 🔥 user is not at bottom
+        setShowNewMsgBtn(true);
+      }
+    }
+  };
+
+    socket.on("new-message", onNewMessage);
+    return () => {
+      socket.off("new-message", onNewMessage);
+    };
   }, [chat]);
 
   return (

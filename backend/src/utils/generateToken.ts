@@ -10,7 +10,7 @@ export const generateToken = (
   const accessToken = jwt.sign(
     { userId, email },
     process.env.ACCESS_TOKEN_SECRET as string,
-    { expiresIn: "30m" }
+    { expiresIn: "2m" }
   );
   const refreshToken = jwt.sign(
     { userId, email },
@@ -18,4 +18,15 @@ export const generateToken = (
     { expiresIn: "7d" }
   );
   return { accessToken, refreshToken };
+};
+
+export const generateAccessToken = (
+  userId: Types.ObjectId,
+  email: string
+) => {
+  return jwt.sign(
+    { userId, email },
+    process.env.ACCESS_TOKEN_SECRET!,
+    { expiresIn: "2m" }
+  );
 };

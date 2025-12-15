@@ -6,7 +6,10 @@ import path from "path";
 import { s3 } from "../../libs/s3";
 import { PutObjectCommand } from "@aws-sdk/client-s3";
 import { Types } from "mongoose";
-import { io,onlineUsers } from "../..";
+import { onlineUsers } from "../../socket";
+import { getIO } from "../../socketEmitter";
+import mongoose from "mongoose";
+
 
 export const getMyFriends = async (req: Request, res: Response) => {
   try {
@@ -140,24 +143,26 @@ export const getChatList = async (req: Request, res: Response) => {
 export const getMessages = async (req: Request, res: Response) => {
   try {
     const { sender, receiver } = req.chatUsers!;
+    const limit = parseInt(req.query.limit as string) || 20;
+    const skip = parseInt(req.query.skip as string) || 0;
 
     const messages = await MessageModal.find({
       $or: [
         { senderId: sender._id, receiverId: receiver._id },
         { senderId: receiver._id, receiverId: sender._id },
       ],
-    }).sort({ createdAt: 1 });
+    })
+      .sort({ createdAt: -1 }) 
+      .skip(skip)
+      .limit(limit)
+      .populate("senderId", "username avatar");
 
     return res.status(200).json({
       success: true,
-      msg: "Messages fetched",
-      messages,
+      messages: messages.reverse(), 
     });
-  } catch (error) {
-    return res.status(500).json({
-      success: false,
-      msg: "Internal server error",
-    });
+  } catch {
+    return res.status(500).json({ success: false });
   }
 };
 
@@ -225,17 +230,21 @@ export const sendMessages = async (req: Request, res: Response) => {
       text,
       file: fileUrl,
     });
-      const receiverSocketId = onlineUsers.get(receiver._id.toString());
+      const receiverIdStr = receiver._id.toString();
+    const senderIdStr = sender._id.toString();
 
-if (receiverSocketId) {
-  io.to(receiverSocketId).emit("new-message", {
-    message,
-  });
+    const receiverSocketId = onlineUsers.get(receiverIdStr);
+    const io = getIO();
 
-  io.to(receiverSocketId).emit("unread-update", {
-    from: sender._id,
-  });
-}
+    if (receiverSocketId) {
+      io.to(receiverSocketId).emit("new-message", {
+        message,
+      });
+
+      io.to(receiverSocketId).emit("unread-update", {
+        from: senderIdStr,
+      });
+    }
 
     return res.status(200).json({
       success: true,
@@ -250,10 +259,11 @@ if (receiverSocketId) {
   }
 };
 
-export const markMessagesAsRead = async (req: Request, res: Response) => {
-  const myId = req.user!.userId;
-  const friendId = req.params.id;
 
+export const markMessagesAsRead = async (req:Request, res:Response) => {
+  const myId = req.user?.userId;
+  const friendId = req.params.id;
+     
   await MessageModal.updateMany(
     {
       senderId: friendId,
@@ -263,27 +273,117 @@ export const markMessagesAsRead = async (req: Request, res: Response) => {
     { $set: { isRead: true } }
   );
 
-  return res.json({
-    success: true,
-    msg: "Messages marked as read",
-  });
+  const io = getIO();
+  
+  const friendSocket = onlineUsers.get(friendId);
+  if (friendSocket) {
+    io.to(friendSocket).emit("messages-read", {
+      by: myId,
+    });
+  }
+
+  return res.json({ success: true });
 };
+
+
 
 export const clearChat = async (req: Request, res: Response) => {
   const myId = req.user!.userId;
   const friendId = req.params.id;
 
-  await MessageModal.deleteMany({
-    $or: [
-      { senderId: myId, receiverId: friendId },
-      { senderId: friendId, receiverId: myId },
-    ],
-  });
+  await MessageModal.updateMany(
+    {
+      $or: [
+        { senderId: myId, receiverId: friendId },
+        { senderId: friendId, receiverId: myId },
+      ],
+    },
+    {
+      $addToSet: { deletedFor: myId },
+    }
+  );
 
   return res.json({
     success: true,
-    msg: "Chat cleared",
+    msg: "Chat cleared for you",
   });
 };
 
 
+
+export const deleteMessageForEveryone = async (req:Request, res:Response) => {
+  try {
+    const { messageId } = req.params;
+    const userId = req.user?.userId.toString();
+
+     if (!mongoose.Types.ObjectId.isValid(messageId)) {
+  return res.status(400).json({
+    msg: "Invalid message id",
+  });
+}
+    const message = await MessageModal.findById(messageId);
+    if (!message) {
+      return res.status(404).json({ msg: "Message not found" });
+    }
+
+    if (message.senderId.toString() !== userId) {
+      return res.status(403).json({ msg: "Not allowed" });
+    }
+
+    message.isDeleted = true;
+    message.text = "";
+    message.file = undefined;
+    await message.save();
+
+    const io = getIO();
+
+    const receiverSocketId = onlineUsers.get(
+      message.receiverId.toString()
+    );
+    const senderSocketId = onlineUsers.get(userId);
+
+    if (receiverSocketId) {
+      io.to(receiverSocketId).emit("message-deleted", {
+        messageId,
+      });
+    }
+
+    if (senderSocketId) {
+      io.to(senderSocketId).emit("message-deleted", {
+        messageId,
+      });
+    }
+
+    res.json({ success: true });
+  } catch(error) {
+    res.status(500).json({ msg: "Server error",error });
+  }
+};
+
+export const deleteMessageForMe = async (req:Request, res:Response) => {
+  try {
+    const { messageId } = req.params;
+    const myId = req.user!.userId;
+
+    if (!mongoose.Types.ObjectId.isValid(messageId)) {
+      return res.status(400).json({ msg: "Invalid message id" });
+    }
+
+    const message = await MessageModal.findById(messageId);
+    if (!message) {
+      return res.status(404).json({ msg: "Message not found" });
+    }
+
+    if (!message.deletedFor.includes(myId)) {
+      message.deletedFor.push(myId);
+      await message.save();
+    }
+
+    return res.json({
+      success: true,
+      msg: "Message deleted for you",
+    });
+  } catch (err) {
+    return res.status(500).json({ msg: "Server error" });
+  }
+};

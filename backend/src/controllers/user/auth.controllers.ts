@@ -4,9 +4,9 @@ import { forgetPasswordOtpMail, sendVerificationMail, welcomeEmail } from "../..
 import bcrypt from "bcryptjs";
 import { Request, Response } from "express";
 import { error } from "console";
-import { generateToken } from "../../utils/generateToken";
+import { generateAccessToken, generateToken } from "../../utils/generateToken";
 import { logoutOptions, options } from "../../utils/cookie";
-
+import  jwt from "jsonwebtoken";
 
  export const register = async (req: Request, res: Response) => {
     const { email, username, password } = req.body;
@@ -172,7 +172,7 @@ export const login = async (req: Request, res: Response) => {
         user.refreshToken = refreshToken;
         await user.save();
         
-        return res.status(200).cookie("accessToken", accessToken, options).cookie("refreshToken", refreshToken, options).json({ success: true, msg: "login successfull" })
+      return res.status(200).cookie("accessToken", accessToken, options).cookie("refreshToken", refreshToken, options).json({ success: true, msg: "login successfull" });
     
     } catch (error) {
         return res.status(400).json({ success: true, msg: "server error" })
@@ -278,5 +278,36 @@ export const checkAuth = (req: Request, res: Response) => {
     authenticated: true,
     user: req.user 
   });
+};
+
+export const refreshAccessToken = async (req: Request, res: Response) => {
+  try {
+    const refreshToken = req.cookies.refreshToken;
+    if (!refreshToken) {
+      return res.status(401).json({ success: false });
+    }
+
+    const decoded = jwt.verify(
+      refreshToken,
+      process.env.REFRESH_TOKEN_SECRET!
+    ) as { userId: string };
+
+    const user = await UserMOdel.findById(decoded.userId);
+    if (!user || user.refreshToken !== refreshToken) {
+      return res.status(401).json({ success: false });
+    }
+
+    const newAccessToken = generateAccessToken(user._id, user.email);
+
+    res.cookie("accessToken", newAccessToken, options);
+
+    return res.status(200).json({
+      success: true,
+      accessToken: newAccessToken, 
+      user,
+    });
+  } catch {
+    return res.status(401).json({ success: false });
+  }
 };
 

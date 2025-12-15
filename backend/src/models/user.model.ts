@@ -28,7 +28,10 @@ export interface IUser extends Document {
   blockedUsers: Types.ObjectId[];
 
   createdAt: Date;
-  updatedAt: Date;
+    updatedAt: Date;
+    lastSeen: Date,
+    isOnline:boolean,
+    
 }
 
 const userSchema = new mongoose.Schema<IUser>(
@@ -72,7 +75,10 @@ const userSchema = new mongoose.Schema<IUser>(
         blockedUsers: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: "User",
-          }],
+        }],
+        lastSeen: { type: Date, default: null },
+isOnline: { type: Boolean, default: false },
+
 
     },
     { timestamps: true }

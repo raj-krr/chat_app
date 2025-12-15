@@ -6,7 +6,9 @@ export interface IMessage extends Document {
   receiverId: Types.ObjectId;
   text?: string;
     file?: string;
-    isRead?: boolean;
+  isRead?: boolean;
+  isDeleted?: boolean;
+  deletedFor: string[] ;
 }
 
 
@@ -26,6 +28,14 @@ const messageSchema = new mongoose.Schema<IMessage>({
    isRead: {
   type: Boolean,
   default: false,
+},
+isDeleted: {
+  type: Boolean,
+  default: false,
+},
+deletedFor: {
+  type: [String],
+  default: [],
 }
 
 }, { timestamps: true },
