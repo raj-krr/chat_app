@@ -1,10 +1,10 @@
 import ChatHeader from "./ChatHeader";
-import MessageBubble from "./MessageBubble";
-import MessageInput from "./MessageInput";
-import { useAuth } from "../../context/AuthContext";
+import MessageBubble from "../components/MessageBubble";
+import MessageInput from "../components/MessageInput";
+import { useAuth } from "../../../context/AuthContext";
 
-import { useChatMessages } from "./useChatMessages";
-import { useChatSocket } from "./useChatSocket";
+import { useChatMessages } from "../hooks/useChatMessages";
+import { useChatSocket } from "../hooks/useChatSocket";
 
 const formatDateLabel = (date: string) => {
   const d = new Date(date);
@@ -55,10 +55,12 @@ export default function ChatWindow({ chat, onBack }: any) {
 
     shouldAutoScrollRef.current = atBottom;
     
+const lastVisibleMsg = visibleMessages[visibleMessages.length - 1];
 
 const hasUnreadFromChatUser =
-  messages.length > 0 &&
-  messages[messages.length - 1].senderId !== user?._id;
+  lastVisibleMsg &&
+  lastVisibleMsg.senderId !== user?._id;
+
 
 if (atBottom) {
   setShowNewMsgBtn(false);
@@ -78,38 +80,49 @@ if (atBottom) {
 );
 
   return (
-    <div className="flex flex-col h-full p-4 relative">
+    <div className="flex flex-col h-full relative">
       <ChatHeader user={chat} onBack={onBack} />
 
       <div
         ref={containerRef}
         onScroll={handleScroll}
-        className="flex-1 overflow-y-auto mt-4 px-1"
+        className="flex-1 overflow-y-auto px-4 py-3 "
       >
-        {visibleMessages.map((m, i) => {
-          const prev = messages[i - 1];
-          const showDate =
-            !prev ||
-            new Date(prev.createdAt).toDateString() !==
-              new Date(m.createdAt).toDateString();
+    {visibleMessages.map((m, i) => {
+  const prev = visibleMessages[i - 1];
+  const showDate =
+    !prev ||
+    new Date(prev.createdAt).toDateString() !==
+      new Date(m.createdAt).toDateString();
 
-          return (
-            <div key={m._id}>
-              {showDate && (
-                <div className="text-center my-3 text-xs text-white/60">
-                  {formatDateLabel(m.createdAt)}
-                </div>
-              )}
-              <MessageBubble msg={m} chatUser={chat} />
-            </div>
-          );
-        })}
+  const showAvatar =
+    !prev || prev.senderId !== m.senderId;
+
+  return (
+    <div key={m._id}>
+      {showDate && (
+        <div className="text-center my-3 text-xs text-white/60">
+          {formatDateLabel(m.createdAt)}
+        </div>
+      )}
+      <MessageBubble
+        msg={m}
+        chatUser={chat}
+        showAvatar={showAvatar}
+      />
+    </div>
+  );
+})}
+
         <div ref={endRef} />
       </div>
 
       {isTyping && (
-        <p className="text-xs opacity-60 mt-1">typing...</p>
-      )}
+  <div className="px-4 pb-1 text-xs text-white/60">
+    typing…
+  </div>
+)}
+
 
       {showNewMsgBtn && (
         <button
@@ -119,7 +132,8 @@ if (atBottom) {
             shouldAutoScrollRef.current = true;
           }}
           className="
-            absolute bottom-24 left-1/2 -translate-x-1/2
+            absolute bottom-28 md:bottom-24
+            left-1/2 -translate-x-1/2
             px-4 py-2 rounded-full
             bg-indigo-600 text-white shadow-lg
           "

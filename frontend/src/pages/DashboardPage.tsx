@@ -1,6 +1,6 @@
 import { useState } from "react";
 import Sidebar from "../components/dashboard/Sidebar";
-import ChatWindow from "../components/chat/ChatWindow";
+import ChatWindow from "../components/chat/components/ChatWindow";
 import EmptyState from "../components/dashboard/EmptyState";
 import AppNavbar from "../components/layout/AppNavbar";
 
@@ -12,8 +12,10 @@ export default function DashboardPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500">
 
-      {/* NAVBAR (hidden only during mobile chat) */}
-      {!isMobileChatOpen && <AppNavbar active="home" />}
+      <div className="hidden md:block">
+  <AppNavbar />
+</div>
+
 
       <div className="pt-24 px-4">
         <div

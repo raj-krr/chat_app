@@ -241,11 +241,16 @@ export const sendMessages = async (req: Request, res: Response) => {
         message,
       });
 
+     const senderSocketId = onlineUsers.get(senderIdStr);
+if (senderSocketId) {
+  io.to(senderSocketId).emit("new-message", { message });
+      }
+      
       io.to(receiverSocketId).emit("unread-update", {
         from: senderIdStr,
       });
     }
-
+     await message.save();
     return res.status(200).json({
       success: true,
       msg: "Message sent successfully",

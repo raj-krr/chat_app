@@ -43,9 +43,7 @@ const onOnlineUsers = (users: string[]) => {
 socket.on("online-users", onOnlineUsers);
     socket.on("user-online", onUserOnline);
       socket.on("user-offline", onUserOffline);
-      socket.on("user-online", (id) => {
-  console.log("ONLINE:", id);
-});
+    
 
 
     return () => {

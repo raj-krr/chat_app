@@ -14,6 +14,7 @@ const host =
 const server = http.createServer(app);
 
 const io = new Server(server, {
+    transports: ["websocket"],
   cors: {
     origin: process.env.FRONTEND_URL,
     credentials: true,

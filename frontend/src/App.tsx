@@ -1,6 +1,6 @@
 import { Routes, Route } from "react-router-dom";
-import { useEffect } from "react";
-import { socket } from "../src/apis/socket";
+// import { useEffect } from "react";
+// import { socket } from "../src/apis/socket";
 
 import Login from "./pages/auth/LoginPage";
 import Register from "./pages/auth/Register";
@@ -12,26 +12,8 @@ import ResetPassword from "./pages/auth/ResetPassword";
 import Home from "./pages/HomePage";
 import ProfilePage from "./pages/ProfilePage";
 import NotificationsPage from "./pages/NotificationsPage";
-import { useAuth } from "./context/AuthContext";
-
 
 function App() {
-  const { isAuth, user } = useAuth();
-
-  useEffect(() => {
-    if (isAuth && user) {
-      if (!socket.connected) {
-        socket.connect();
-      }
-    } else {
-      socket.disconnect();
-    }
-
-    return () => {
-      socket.disconnect();
-    };
-  }, [isAuth, user]);
-
 
   return (
     <Routes>

@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import { refreshApi } from "../apis/auth.api";
-import { connectSocket } from "../apis/socketManager";
+import { socket } from "../apis/socket";
 
 type AuthContextType = {
   isAuth: boolean | null;
@@ -23,7 +23,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         setUser(res.data.user);
         setIsAuth(true);
 
-        connectSocket(); // 🔥 ONLY HERE
+        socket.connect(); // ✅ CONNECT ONCE
       } catch {
         setIsAuth(false);
         setUser(null);
@@ -31,6 +31,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     };
 
     bootstrap();
+
+    return () => {
+      socket.disconnect(); // ✅ DISCONNECT ON APP CLOSE / LOGOUT
+    };
   }, []);
 
   return (

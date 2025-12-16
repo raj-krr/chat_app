@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { getMessagesApi } from "../../apis/chat.api";
+import { getMessagesApi } from "../../../apis/chat.api";
 
 const PAGE_SIZE = 20;
 
