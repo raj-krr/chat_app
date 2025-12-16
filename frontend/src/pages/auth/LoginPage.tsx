@@ -2,6 +2,10 @@ import { useState } from "react";
 import { Button, TextInput, PasswordInput, Group, Text } from "@mantine/core";
 import { useNavigate } from "react-router-dom";
 import { loginApi } from "../../apis/auth.api";
+import { useAuth } from "../../context/AuthContext";
+import { refreshApi } from "../../apis/auth.api";
+import { socket } from "../../apis/socket";
+
 
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const usernameRegex = /^[a-zA-Z0-9._-]+$/;
@@ -12,6 +16,7 @@ export default function LoginPage() {
 
   const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
+  const { setIsAuth, setUser } = useAuth();
 
   const [identifierError, setIdentifierError] = useState("");
   const [passwordError, setPasswordError] = useState("");
@@ -59,8 +64,13 @@ export default function LoginPage() {
     if (!validateInputs()) return;
 
     try {
-   await loginApi({ identifier, password });
-  
+      await loginApi({ identifier, password });
+      const res = await refreshApi();
+      setUser(res.data.user);
+
+      setIsAuth(true);
+      socket.connect();
+
       navigate("/dashboard");
     } catch (err: any) {
       const msg = err.response?.data?.msg;

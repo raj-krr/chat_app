@@ -5,11 +5,15 @@ import { socket } from "../apis/socket";
 type AuthContextType = {
   isAuth: boolean | null;
   user: any | null;
+   setIsAuth: (v: boolean) => void;
+  setUser: (u: any) => void;
 };
 
 const AuthContext = createContext<AuthContextType>({
   isAuth: null,
   user: null,
+    setIsAuth: () => {},
+  setUser: () => {},
 });
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
@@ -23,24 +27,23 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         setUser(res.data.user);
         setIsAuth(true);
 
-        socket.connect(); // ✅ CONNECT ONCE
+        socket.connect(); 
       } catch {
         setIsAuth(false);
         setUser(null);
       }
     };
-
+    
     bootstrap();
 
-    return () => {
-      socket.disconnect(); // ✅ DISCONNECT ON APP CLOSE / LOGOUT
-    };
   }, []);
 
   return (
-    <AuthContext.Provider value={{ isAuth, user }}>
-      {children}
-    </AuthContext.Provider>
+   <AuthContext.Provider
+  value={{ isAuth, user, setIsAuth, setUser }}
+>
+  {children}
+</AuthContext.Provider>
   );
 };
 
