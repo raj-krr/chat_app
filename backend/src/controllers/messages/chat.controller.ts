@@ -225,6 +225,7 @@ export const sendMessages = async (req: Request, res: Response) => {
       receiverId: receiver._id,
       text,
       file: fileUrl,
+      clientId,
     });
     const receiverIdStr = receiver._id.toString();
     const senderIdStr = sender._id.toString();
@@ -236,12 +237,11 @@ export const sendMessages = async (req: Request, res: Response) => {
       io.to(receiverSocketId).emit("new-message", {
         message: { ...message.toObject(), clientId },
       });
-
+      
       io.to(receiverSocketId).emit("unread-update", {
         from: senderIdStr,
       });
     }
-    await message.save();
     return res.status(200).json({
       success: true,
       message: {

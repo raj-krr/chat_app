@@ -8,7 +8,8 @@ export interface IMessage extends Document {
     file?: string;
   isRead?: boolean;
   isDeleted?: boolean;
-  deletedFor: string[] ;
+  deletedFor: string[];
+  clientId:string,
 }
 
 
@@ -36,7 +37,8 @@ isDeleted: {
 deletedFor: {
   type: [String],
   default: [],
-}
+  },
+  clientId: { type: String },
 
 }, { timestamps: true },
 

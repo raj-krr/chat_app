@@ -29,7 +29,7 @@ if (!user || !user._id) {
 
     const tempMsg = {
       _id: undefined,               // backend will give later
-      clientId,                     // 🔥 UNIQUE FRONTEND ID
+      clientId,                     //  UNIQUE FRONTEND ID
       text: finalText || "",
      senderId: user._id,
 receiverId: receiverId,
@@ -37,7 +37,7 @@ receiverId: receiverId,
       createdAt: new Date().toISOString(),
       status: "sending",
       isTemp:true,
-      progress: 0,
+     
       attachment: finalFile
         ? { name: finalFile.name, type: finalFile.type }
         : undefined,
@@ -46,7 +46,7 @@ receiverId: receiverId,
       },
     };
 
-    // ✅ add temp message ONCE
+    //  add temp message ONCE
     onLocalSend((prev: any[]) => [...prev, tempMsg]);
 
     setText("");
@@ -57,16 +57,17 @@ receiverId: receiverId,
     if (finalFile) form.append("file", finalFile);
 
     try {
-      await sendMessageApi(chatId, form, (p: number) => {
-        onLocalSend((prev: any[]) =>
-          prev.map(m =>
-            m.clientId === clientId ? { ...m, progress: p } : m
-          )
-        );
-      });
 
+      await sendMessageApi(chatId, form);
+       onLocalSend((prev: any[]) =>
+  prev.map(m =>
+    m.clientId === clientId
+      ? { ...m, status: "sent", isTemp: false }
+      : m
+  )
+);
       socket.emit("stop-typing", { to: chatId });
-      // ✅ real message will come via socket (no duplicate)
+      //  real message will come via socket (no duplicate)
 
     } catch {
       onLocalSend((prev: any[]) =>
@@ -84,7 +85,7 @@ receiverId: receiverId,
           📎 {pendingFile.name}
           <button
             onClick={() => setPendingFile(null)}
-            className="ml-auto text-red-300"
+            className="ml-auto text-red-900"
           >
             ✕
           </button>

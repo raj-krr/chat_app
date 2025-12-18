@@ -30,46 +30,43 @@ export function useChatSocket({
 
   /* -------- NEW MESSAGE (🔥 FIXED) -------- */
   useEffect(() => {
-    const onNewMessage = ({ message }: any) => {
-      const isCurrentChat =
-        (message.senderId === userId &&
-          message.receiverId === chatId) ||
-        (message.senderId === chatId &&
-          message.receiverId === userId);
+  const onNewMessage = ({ message }: any) => {
+    const isCurrentChat =
+      (message.senderId === userId &&
+        message.receiverId === chatId) ||
+      (message.senderId === chatId &&
+        message.receiverId === userId);
 
-      if (!isCurrentChat) return;
+    if (!isCurrentChat) return;
+
     setMessages((prev: any[]) => {
-  const tempIndex = prev.findIndex(
-    m => m.clientId && m.senderId === userId
-  );
-
-  if (tempIndex !== -1) {
-    const updated = [...prev];
-    updated[tempIndex] = {
-      ...message,
-      clientId: prev[tempIndex].clientId, // preserve key
-    };
-    return updated;
-  }
-
-  return [...prev, message];
-});
-
-
-
-      // ✅ SCROLL LOGIC
-      if (shouldAutoScrollRef.current) {
-        requestAnimationFrame(() =>
-          endRef.current?.scrollIntoView({ behavior: "smooth" })
-        );
-      } else {
-        setShowNewMsgBtn(true);
+      //  Replace optimistic message
+      if (message.clientId) {
+        const exists = prev.find(m => m.clientId === message.clientId);
+        if (exists) {
+          return prev.map(m => { m.clientId === message.clientId ? message : m }
+          );
+        }
       }
-    };
 
-    socket.on("new-message", onNewMessage);
+      //  Normal incoming message
+      return [...prev, message];
+    });
+
+    // scroll logic unchanged
+    if (shouldAutoScrollRef.current) {
+      requestAnimationFrame(() =>
+        endRef.current?.scrollIntoView({ behavior: "smooth" })
+      );
+    } else {
+      setShowNewMsgBtn(true);
+    }
+  };
+
+  socket.on("new-message", onNewMessage);
     return () => { socket.off("new-message", onNewMessage) };
-  }, [chatId, userId, setMessages]);
+}, [chatId, userId, setMessages]);
+
 
   /* -------- TYPING -------- */
   useEffect(() => {

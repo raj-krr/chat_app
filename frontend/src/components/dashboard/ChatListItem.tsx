@@ -57,7 +57,7 @@ export default function ChatListItem({
             className={`
               absolute bottom-0 right-0
               w-3 h-3 rounded-full
-              border-2 border-[#1f1f2e]
+           
               ${isOnline ? "bg-green-500" : "bg-gray-400"}
             `}
           />
