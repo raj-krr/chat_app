@@ -12,9 +12,9 @@ export type Profile = {
   lastName: string;
   username: string;
   email: string;
-  dob: string;
+  dob: string ;
   gender: string;
-  bio: string;
+  bio: string ;
   avatar: string;
 };
 
@@ -29,8 +29,6 @@ export function useProfile() {
   const [initializing, setInitializing] = useState(true);
 
   /* ---------- helpers ---------- */
-  const formatDate = (date: string) =>
-    date ? new Date(date).toISOString().split("T")[0] : "";
 
   const getFullName = () =>
     `${profile?.firstName || ""} ${profile?.lastName || ""}`.trim();
@@ -65,11 +63,12 @@ export function useProfile() {
         lastName: u.lastName || "",
         username: u.username || "",
         email: u.email || "",
-        dob: formatDate(u.dob),
+      dob: u.dob ? new Date(u.dob).toISOString().split("T")[0] : "",
         gender: u.gender ?? "male",
         bio: u.bio || "",
         avatar: u.avatar || "",
       });
+        
     } finally {
       setInitializing(false);
     }
@@ -90,7 +89,6 @@ export function useProfile() {
     else if (!/^[a-zA-Z0-9._-]+$/.test(profile.username))
       err.username = "Invalid username";
 
-    // if (!profile.dob) err.dob = "DOB required";
     if (profile.bio.length > 50) err.bio = "Max 50 characters";
 
     setErrors(err);
@@ -98,32 +96,29 @@ export function useProfile() {
   };
 
   /* ---------- save ---------- */
-    const saveChanges = async () => {
-       console.log("SAVE CLICKED");
-  console.log("PROFILE BEFORE VALIDATE:", profile);
+   const saveChanges = async () => {
+  
+
+  if (!profile) return;
+
   const isValid = validate();
-  console.log("VALID RESULT:", isValid);
 
-  if (!profile || !isValid) {
-    console.log("STOPPED BY VALIDATION", errors);
-    return;
+  if (!isValid) return;
+
+  try {
+    setLoading(true);
+    await updateProfileApi({
+      firstName: profile.firstName,
+      lastName: profile.lastName,
+      dob: profile.dob ,
+      bio: profile.bio,
+      gender: profile.gender,
+    });
+    await loadProfile();
+  } finally {
+    setLoading(false);
   }
-    if (!profile || !validate()) return;
-
-    try {
-      setLoading(true);
-      await updateProfileApi({
-        firstName: profile.firstName,
-        lastName: profile.lastName,
-        dob: profile.dob,
-        bio: profile.bio,
-        gender: profile.gender,
-      });
-      await loadProfile();
-    } finally {
-      setLoading(false);
-    }
-  };
+};
 
   /* ---------- upload ---------- */
   const handleUpload = async (file?: File) => {

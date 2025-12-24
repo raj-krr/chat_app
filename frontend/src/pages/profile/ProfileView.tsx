@@ -13,17 +13,15 @@ export function ProfileView({
   saveChanges,
   logout,
 }: any) {
-    console.log("PROFILE OBJECT:", profile);
-console.log("DOB VALUE:", profile?.dob, typeof profile?.dob);
-
-    if (!profile) return null;
-console.log("PROFILE OBJECT:", profile);
-console.log("DOB VALUE:", profile?.dob, typeof profile?.dob);
+  if (!profile) return null;
 
   return (
-    <div className="max-w-5xl mx-auto grid grid-cols-1 lg:grid-cols-[35%_65%] p-4 md:p-6
-      md:bg-white/10 md:rounded-3xl md:border md:border-white/20 md:backdrop-blur-2xl md:shadow-2xl">
-
+    <div className="
+      max-w-5xl mx-auto grid grid-cols-1 lg:grid-cols-[35%_65%]
+      p-4 md:p-6
+      md:bg-white/10 md:rounded-3xl md:border md:border-white/20
+      md:backdrop-blur-2xl md:shadow-2xl
+    ">
       {/* LEFT */}
       <div className="flex flex-col items-center text-white pr-6 border-r border-white/20">
         <div className="relative">
@@ -39,6 +37,7 @@ console.log("DOB VALUE:", profile?.dob, typeof profile?.dob);
           )}
 
           <button
+            type="button"
             onClick={() => fileRef.current?.click()}
             className="absolute bottom-1 right-1 bg-black/40 p-2 rounded-full"
           >
@@ -61,8 +60,10 @@ console.log("DOB VALUE:", profile?.dob, typeof profile?.dob);
         <p className="text-white/80">{profile.email}</p>
 
         <button
+          type="button"
           onClick={logout}
-          className="hidden sm:block mt-6 px-4 py-2 rounded-xl bg-red-500/30 border border-red-400/40"
+          className="hidden sm:block mt-6 px-4 py-2 rounded-xl
+          bg-red-500/30 border border-red-400/40"
         >
           Logout
         </button>
@@ -110,7 +111,7 @@ console.log("DOB VALUE:", profile?.dob, typeof profile?.dob);
         <TextInput
           label="Date of Birth"
           type="date"
-          value={profile.dob || ""}
+          value={profile.dob ?? ""}
           error={errors.dob}
           onChange={(e) =>
             setProfile({ ...profile, dob: e.target.value })
@@ -122,7 +123,7 @@ console.log("DOB VALUE:", profile?.dob, typeof profile?.dob);
           data={["male", "female", "other"]}
           value={profile.gender}
           onChange={(v) =>
-            setProfile({ ...profile, gender: v || "" })
+            setProfile({ ...profile, gender: v || "male" })
           }
         />
 
@@ -135,7 +136,13 @@ console.log("DOB VALUE:", profile?.dob, typeof profile?.dob);
           }
         />
 
-        <Button loading={loading} onClick={saveChanges} fullWidth radius="lg">
+        <Button
+          type="button"
+          loading={loading}
+          onClick={saveChanges}
+          fullWidth
+          radius="lg"
+        >
           Save Changes
         </Button>
       </div>

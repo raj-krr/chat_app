@@ -10,7 +10,7 @@ import VerifyEmail from "./pages/auth/VerifyEmail";
 import ProtectedRoute from "./routes/ProtectedRoute";
 import ResetPassword from "./pages/auth/ResetPassword";
 import Home from "./pages/HomePage";
-import ProfilePage from "./pages/ProfilePage";
+import ProfilePage from "./pages/profile/ProfilePage";
 import NotificationsPage from "./pages/NotificationsPage";
 import PublicRoute from "./routes/PublicRoute";
 

@@ -22,6 +22,13 @@ export default function NotificationsPage() {
         md:from-indigo-500 md:via-purple-500 md:to-pink-500
       "
     >
+       {/* Background grid */}
+      <div
+        className="
+          absolute inset-0 bg-grid pointer-events-none
+          opacity-[0.03] md:opacity-25
+        "
+      ></div>
       {/* DESKTOP NAVBAR */}
       <div className="hidden md:block">
         <AppNavbar active="notifications" />

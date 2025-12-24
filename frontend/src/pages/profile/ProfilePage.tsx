@@ -1,4 +1,3 @@
-// pages/profile/ProfilePage.tsx
 import AppNavbar from "../../components/layout/AppNavbar";
 import MobileBottomNav from "../../components/layout/MobileBottomNav";
 import TopLoader from "../../components/TopLoader";
@@ -13,26 +12,34 @@ export default function ProfilePage() {
   const navVisible = useScrollDirection();
   const profileState = useProfile();
 
-  if (profileState.initializing && !profileState.profile) {
-    return (
-      <>
-        <TopLoader />
-        <div className="min-h-screen flex items-center justify-center text-white
-          bg-gradient-to-b from-indigo-400 via-purple-400 to-pink-400">
-          Loading profile…
-        </div>
-      </>
-    );
-  }
+  const { initializing, profile } = profileState;
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-indigo-400 via-purple-400 to-pink-400
-      md:bg-gradient-to-br md:from-indigo-500 md:via-purple-500 md:to-pink-500">
+    <div
+      className="
+        min-h-screen relative overflow-hidden
+        bg-gradient-to-b from-indigo-400 via-purple-400 to-pink-400
+        md:bg-gradient-to-br md:from-indigo-500 md:via-purple-500 md:to-pink-500
+        chitchat-bg
+      "
+    >
+      {/* BACKGROUND GRID */}
+      <div
+        className="
+          absolute inset-0 bg-grid pointer-events-none
+          opacity-[0.03] md:opacity-25
+        "
+      />
 
-      <div className="hidden md:block">
+      {/* TOP LOADER (NON-BLOCKING) */}
+      {initializing && <TopLoader />}
+
+      {/* DESKTOP NAVBAR */}
+      <div className="hidden md:block fixed top-0 left-0 w-full z-[100]">
         <AppNavbar active="profile" />
       </div>
 
+      {/* MOBILE HEADER */}
       <div className="md:hidden flex items-center gap-3 px-4 py-4 text-white">
         <button onClick={() => navigate(-1)}>
           <ArrowLeft />
@@ -40,10 +47,18 @@ export default function ProfilePage() {
         <h1 className="text-lg font-semibold">Profile</h1>
       </div>
 
+      {/* MAIN CONTENT */}
       <div className="relative z-10 px-4 md:mt-24">
-        <ProfileView {...profileState} />
+        {profile ? (
+          <ProfileView {...profileState} />
+        ) : (
+          <div className="text-white text-center mt-20 opacity-70">
+            Loading profile…
+          </div>
+        )}
       </div>
 
+      {/* MOBILE BOTTOM NAV */}
       <div className="md:hidden">
         <MobileBottomNav active="profile" visible={navVisible} />
       </div>
