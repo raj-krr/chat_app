@@ -150,29 +150,73 @@ export const sendFriendRequest = async (req: Request, res: Response) => {
     return res.status(400).json({ msg: "Already friends" });
   }
 
+  // KEY FIX: find ANY existing request (any status)
   const existingRequest = await FriendRequest.findOne({
-    $or: [
-      { from: fromUserId, to: toUser._id },
-      { from: toUser._id, to: fromUserId },
-    ],
-    status: "pending",
+    from: fromUserId,
+    to: toUser._id,
   });
 
   if (existingRequest) {
-    return res.status(400).json({ msg: "Friend request already exists" });
+    if (existingRequest.status === "pending") {
+      return res.status(400).json({
+        msg: "Friend request already sent",
+      });
+    }
+
+    //  revive old request instead of creating new
+    existingRequest.status = "pending";
+    await existingRequest.save();
+    
+await Notification.findOneAndUpdate(
+  {
+    user: toUser._id,
+    type: "FRIEND_REQUEST_INCOMING",
+    referenceId: existingRequest._id,
+  },
+  {
+    user: toUser._id,
+    actor: fromUserId,
+    type: "FRIEND_REQUEST_INCOMING",
+    referenceId: existingRequest._id,
+    read: false,
+  },
+  { upsert: true }
+);
+
+    return res.status(200).json({
+      msg: "Friend request re-sent",
+      requestId: existingRequest._id,
+    });
   }
 
   const request = await FriendRequest.create({
     from: fromUserId,
     to: toUser._id,
+    status: "pending",
   });
+
+  await Notification.findOneAndUpdate(
+  {
+    user: toUser._id,
+    type: "FRIEND_REQUEST_INCOMING",
+    referenceId: request._id,
+  },
+  {
+    user: toUser._id,
+    actor: fromUserId,
+    type: "FRIEND_REQUEST_INCOMING",
+    referenceId: request._id,
+    read: false,
+  },
+  { upsert: true }
+);
+
 
   return res.status(201).json({
     msg: "Friend request sent",
     requestId: request._id,
   });
 };
-
 
 export const acceptFriendRequest = async (req: Request, res: Response) => {
   const { requestId } = req.params;
@@ -194,6 +238,15 @@ export const acceptFriendRequest = async (req: Request, res: Response) => {
 
   request.status = "accepted";
   await request.save();
+
+  await Notification.create({
+  user: request.from,
+  actor: request.to,
+  type: "FRIEND_REQUEST_ACCEPTED",
+  referenceId: request._id,
+  read: false,
+});
+
 
   await User.findByIdAndUpdate(request.from, {
     $addToSet: { friends: request.to },
@@ -218,6 +271,15 @@ export const rejectFriendRequest = async (req: Request, res: Response) => {
 
   request.status = "rejected";
   await request.save();
+
+  await Notification.create({
+  user: request.from,
+  actor: request.to,
+  type: "FRIEND_REQUEST_REJECTED",
+  referenceId: request._id,
+  read: false,
+});
+
 
   res.json({ msg: "Friend request rejected" });
 };
@@ -328,7 +390,17 @@ export const cancelFriendRequest = async (req: Request, res: Response) => {
     return res.status(404).json({ msg: "Request not found" });
   }
 
-  await request.deleteOne();
+  request.status = "cancelled";
+await request.save();
+
+  await Notification.create({
+  user: request.to,
+  actor: myId,
+  type: "FRIEND_REQUEST_CANCELLED",
+  referenceId: request._id,
+  read: false,
+});
+
 
   return res.json({
     success: true,

@@ -4,12 +4,28 @@ import ChatWindow from "../components/chat/components/ChatWindow";
 import EmptyState from "../components/dashboard/EmptyState";
 import AppNavbar from "../components/layout/AppNavbar";
 import MobileBottomNav from "../components/layout/MobileBottomNav";
+import { useSearchParams } from "react-router-dom";
+import { useEffect } from "react";
+import { useScrollDirection } from "../utils/useScrollDirection";
+
 
 export default function DashboardPage() {
   const [selectedChat, setSelectedChat] = useState<any>(null);
   const [showFriendsPicker, setShowFriendsPicker] = useState(false);
 
   const isMobileChatOpen = Boolean(selectedChat);
+  const navVisible = useScrollDirection();
+const [searchParams, setSearchParams] = useSearchParams();
+
+useEffect(() => {
+  if (searchParams.get("newChat") === "1") {
+    setShowFriendsPicker(true);
+
+    const next = new URLSearchParams(searchParams);
+    next.delete("newChat");
+    setSearchParams(next, { replace: true });
+  }
+}, [searchParams, setSearchParams]);
 
   return (
     <div
@@ -99,13 +115,13 @@ export default function DashboardPage() {
       )}
 
       {/* MOBILE BOTTOM NAV */}
-      {!isMobileChatOpen && !showFriendsPicker && (
-        <MobileBottomNav
-          active="home"
-          unreadCount={0}
-          onNewChat={() => setShowFriendsPicker(true)}
-        />
-      )}
+     {!isMobileChatOpen && !showFriendsPicker && (
+  <MobileBottomNav
+    active="home"
+    visible={navVisible}
+    onNewChat={() => setShowFriendsPicker(true)}
+  />
+)}
     </div>
   );
 }

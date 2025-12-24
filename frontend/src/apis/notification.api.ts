@@ -5,3 +5,6 @@ export const getNotificationsApi = () =>
 
 export const markNotificationReadApi = (id: string) =>
   axiosInstance.post(`/notifications/read/${id}`);
+
+export const markAllNotificationsReadApi = () =>
+  axiosInstance.post("/notifications/read-all");

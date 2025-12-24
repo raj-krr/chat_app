@@ -1,67 +1,82 @@
 import { useNavigate } from "react-router-dom";
 import { Plus } from "lucide-react";
+import { useNotifications } from "../../context/NotificationContext";
 
 type Props = {
   active: "home" | "search" | "notifications" | "profile";
-  unreadCount?: number;
-  onNewChat: () => void;
+  onNewChat?: () => void; 
+  visible?: boolean;
 };
 
 export default function MobileBottomNav({
   active,
-  unreadCount = 0,
   onNewChat,
+   visible = true,
 }: Props) {
   const navigate = useNavigate();
+  const { unreadCount } = useNotifications();
+
+  const handleNewChat = () => {
+    if (onNewChat) {
+      onNewChat();
+    } else {
+      navigate("/dashboard?newChat=1");
+    }
+  };
 
   const itemClass = (key: string) =>
-  `
-    relative flex flex-col items-center justify-center
-    text-xl
-    hover:text-white hover:scale-105
-    transition-all duration-200
-    active:scale-95
-    ${
-      active === key
-        ? "scale-110 text-white drop-shadow-[0_0_10px_rgba(139,92,246,0.8)]"
-        : "text-white/60"
-    }
-  `;
-
+    `
+      relative flex flex-col items-center justify-center
+      text-xl
+      hover:text-white hover:scale-105
+      transition-all duration-200
+      active:scale-95
+      ${
+        active === key
+          ? "scale-110 text-white drop-shadow-[0_0_10px_rgba(139,92,246,0.8)]"
+          : "text-white/60"
+      }
+    `;
 
   return (
-    <div
-      className="
-        fixed bottom-5 left-1/2 -translate-x-1/2
-        w-[92%] max-w-sm
-        h-16
-        backdrop-blur-xl bg-white/20
-        border border-white/30
-        rounded-full
-        flex justify-between items-center
-        px-6
-        z-[100]
-        sm:hidden
-        animate-[navIn_0.5s_ease-out]
-      "
-    >
+ <div
+  className={`
+    fixed bottom-5 left-1/2 -translate-x-1/2
+    w-[92%] max-w-sm h-16
+    backdrop-blur-xl bg-white/20
+    border border-white/30
+    rounded-full
+    flex justify-between items-center
+    px-6
+    z-[100]
+    sm:hidden
+    transition-all duration-300 ease-in-out
+
+    ${
+      visible
+        ? "translate-y-0 opacity-100"
+        : "translate-y-24 opacity-0 pointer-events-none"
+    }
+  `}
+>
+
       <button
         className={itemClass("home")}
-              onClick={() => navigate("/dashboard")}
+        onClick={() => navigate("/dashboard")}
       >
         💬
       </button>
 
       <button
         className={itemClass("search")}
-              onClick={() => navigate("/dashboard")}
+        onClick={() => navigate("/dashboard")}
       >
         🔍
       </button>
 
       {/* CENTER NEW CHAT */}
       <button
-              onClick={onNewChat}
+        onClick={handleNewChat}
         className="
           -mt-8 w-14 h-14 rounded-full
           bg-gradient-to-br from-purple-500 to-cyan-400
@@ -74,7 +89,7 @@ export default function MobileBottomNav({
 
       <button
         className={itemClass("notifications")}
-              onClick={() => navigate("/notifications")}
+        onClick={() => navigate("/notifications")}
       >
         🔔
         {unreadCount > 0 && (
@@ -84,7 +99,7 @@ export default function MobileBottomNav({
         )}
       </button>
 
-          <button
+      <button
         className={itemClass("profile")}
         onClick={() => navigate("/profile")}
       >

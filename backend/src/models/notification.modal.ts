@@ -1,8 +1,9 @@
 import mongoose, { Schema, Types } from "mongoose";
 
 export interface INotification {
-  user: Types.ObjectId;        
-  actor?: Types.ObjectId;     
+  user: Types.ObjectId;       
+  actor?: Types.ObjectId;      
+  referenceId?: Types.ObjectId; 
   type:
     | "FRIEND_REQUEST_INCOMING"
     | "FRIEND_REQUEST_ACCEPTED"
@@ -27,6 +28,11 @@ const notificationSchema = new Schema<INotification>(
       ref: "User",
     },
 
+    referenceId: {
+      type: Schema.Types.ObjectId,
+      index: true,
+    },
+
     type: {
       type: String,
       enum: [
@@ -47,10 +53,9 @@ const notificationSchema = new Schema<INotification>(
   { timestamps: true }
 );
 
-
 notificationSchema.index({ user: 1, createdAt: -1 });
-
 notificationSchema.index({ user: 1, read: 1 });
+notificationSchema.index({ user: 1, type: 1, referenceId: 1 });
 
 const Notification = mongoose.model<INotification>(
   "Notification",

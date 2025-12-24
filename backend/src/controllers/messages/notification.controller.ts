@@ -7,11 +7,19 @@ export const getMyNotifications = async (req: Request, res: Response) => {
 
     const notifications = await Notification.find({ user: userId })
       .populate("actor", "username avatar")
-      .sort({ createdAt: -1 });
+      .sort({ createdAt: -1 })
+      .limit(30);
+    
+    const unreadCount = await Notification.countDocuments({
+    user: userId,
+    read: false,
+});
+
 
     return res.status(200).json({
       success: true,
       notifications,
+       unreadCount,
     });
   } catch (error) {
     console.error("GET NOTIFICATIONS ERROR:", error);
@@ -38,6 +46,30 @@ export const markNotificationRead = async (req: Request, res: Response) => {
     });
   } catch (error) {
     console.error("READ NOTIFICATION ERROR:", error);
+    return res.status(500).json({
+      success: false,
+      msg: "Internal server error",
+    });
+  }
+};
+export const markAllNotificationsRead = async (
+  req: Request,
+  res: Response
+) => {
+  try {
+    const userId = req.user!.userId;
+
+    await Notification.updateMany(
+      { user: userId, read: false },
+      { read: true }
+    );
+
+    return res.status(200).json({
+      success: true,
+      msg: "All notifications marked as read",
+    });
+  } catch (error) {
+    console.error("READ ALL NOTIFICATIONS ERROR:", error);
     return res.status(500).json({
       success: false,
       msg: "Internal server error",

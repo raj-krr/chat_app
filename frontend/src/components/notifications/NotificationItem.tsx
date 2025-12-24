@@ -25,6 +25,7 @@ export default function NotificationItem({
     FRIEND_REQUEST_REJECTED: `${actor} rejected your friend request`,
     FRIEND_REQUEST_CANCELLED: `${actor} cancelled the friend request`,
     UNFRIENDED: `${actor} removed you from their friends`,
+    FRIEND_REQUEST_INCOMING: `${actor} sent you a friend request`,
   };
 
   return (

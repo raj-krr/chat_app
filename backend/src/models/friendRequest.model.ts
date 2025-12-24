@@ -3,7 +3,7 @@ import mongoose, { Schema, Types } from "mongoose";
 export interface IFriendRequest {
   from: Types.ObjectId;
   to: Types.ObjectId;
-  status: "pending" | "accepted" | "rejected";
+  status: "pending" | "accepted" | "rejected"| "cancelled";
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -22,7 +22,7 @@ const friendRequestSchema = new Schema<IFriendRequest>(
     },
     status: {
       type: String,
-      enum: ["pending", "accepted", "rejected"],
+      enum: ["pending", "accepted", "rejected","cancelled"],
       default: "pending",
     },
   },

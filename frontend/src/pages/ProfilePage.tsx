@@ -9,7 +9,8 @@ import {
   uploadProfilePhotoApi,
 } from "../apis/profile.api";
 import AppNavbar from "../components/layout/AppNavbar";
-
+import MobileBottomNav from "../components/layout/MobileBottomNav";
+import { useScrollDirection } from "../utils/useScrollDirection";
 type Profile = {
   firstName: string;
   lastName: string;
@@ -30,6 +31,7 @@ export default function ProfilePage() {
   const [uploading, setUploading] = useState(false);
   const [errors, setErrors] = useState<any>({});
   const [initializing, setInitializing] = useState(true);
+  const navVisible = useScrollDirection();
 
   /* ---------------- HELPERS ---------------- */
   const formatDate = (date: string) => {
@@ -307,6 +309,13 @@ export default function ProfilePage() {
             </div>
           </div>
         </div>
+         {/* MOBILE BOTTOM NAV */}
+        <div className="md:hidden">
+  <MobileBottomNav
+    active="profile"
+    visible={navVisible}
+  />
+</div>
       </div>
     </>
   );

@@ -1,21 +1,21 @@
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
+import { useNotifications } from "../../context/NotificationContext";
 
 type Props = {
   active?: "home" | "profile" | "notifications";
-  unreadCount?: number;
 };
 
 export default function AppNavbar({
   active = "home",
-  unreadCount = 0,
 }: Props) {
   const navigate = useNavigate();
-  const { logout } = useAuth(); 
+  const { logout } = useAuth();
+  const { unreadCount } = useNotifications(); 
 
   const handleLogout = async () => {
     try {
-      await logout(); 
+      await logout();
     } catch (err) {
       console.error("Logout failed", err);
     }

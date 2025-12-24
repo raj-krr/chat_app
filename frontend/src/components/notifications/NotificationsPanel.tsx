@@ -1,30 +1,14 @@
-import { useEffect, useState } from "react";
-import { getNotificationsApi } from "../../apis/notification.api";
 import NotificationItem from "./NotificationItem";
+import { useNotifications } from "../../context/NotificationContext";
 
 export default function NotificationsPanel() {
-  const [notifications, setNotifications] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    loadNotifications();
-  }, []);
-
-  const loadNotifications = async () => {
-    try {
-      const res = await getNotificationsApi();
-      setNotifications(
-        Array.isArray(res.data?.notifications)
-          ? res.data.notifications
-          : []
-      );
-    } catch (err) {
-      console.error("NOTIFICATIONS ERROR:", err);
-      setNotifications([]);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const {
+    notifications,
+    loading,
+    markLocalRead,
+     markAllRead,
+  unreadCount,
+  } = useNotifications();
 
   return (
     <div
@@ -50,6 +34,20 @@ export default function NotificationsPanel() {
           No notifications yet
         </div>
       )}
+    {unreadCount > 0 && (
+  <div className="flex justify-end mb-3">
+    <button
+      onClick={markAllRead}
+      className="
+        text-xs px-3 py-1 rounded-full
+        bg-white/20 text-white/80
+        hover:bg-white/30 transition
+      "
+    >
+      Mark all as read
+    </button>
+  </div>
+)}
 
       {/* LIST */}
       {!loading && notifications.length > 0 && (
@@ -58,7 +56,7 @@ export default function NotificationsPanel() {
             <NotificationItem
               key={n._id}
               notification={n}
-              onRead={loadNotifications}
+              onRead={() => markLocalRead(n._id)}
             />
           ))}
         </div>
