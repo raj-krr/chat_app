@@ -2,8 +2,7 @@ import { useState, useRef } from "react";
 import { sendMessageApi } from "../../../apis/chat.api";
 import { socket } from "../../../apis/socket";
 import { useAuth } from "../../../context/AuthContext";
-
-
+import { Paperclip, Send, X } from "lucide-react";
 
 export default function MessageInput({ chatId, receiverId, onLocalSend }: any) {
   const [text, setText] = useState("");
@@ -12,32 +11,30 @@ export default function MessageInput({ chatId, receiverId, onLocalSend }: any) {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const { user } = useAuth();
 
-  
-  
   const send = async (retryPayload?: { text: string; file: File | null }) => {
-if (!user || !user._id) {
-    console.warn("User not ready yet");
-    return;
-  }
+    if (!user || !user._id) {
+      console.warn("User not ready yet");
+      return;
+    }
 
-  const finalText = retryPayload?.text ?? text;
-  const finalFile = retryPayload?.file ?? pendingFile;
+    const finalText = retryPayload?.text ?? text;
+    const finalFile = retryPayload?.file ?? pendingFile;
 
-  if (!finalText.trim() && !finalFile) return;
+    if (!finalText.trim() && !finalFile) return;
 
     const clientId = crypto.randomUUID();
 
     const tempMsg = {
-      _id: undefined,               // backend will give later
-      clientId,                     //  UNIQUE FRONTEND ID
+      _id: undefined, // backend will give later
+      clientId, //  UNIQUE FRONTEND ID
       text: finalText || "",
-     senderId: user._id,
-receiverId: receiverId,
+      senderId: user._id,
+      receiverId: receiverId,
 
       createdAt: new Date().toISOString(),
       status: "sending",
-      isTemp:true,
-     
+      isTemp: true,
+
       attachment: finalFile
         ? { name: finalFile.name, type: finalFile.type }
         : undefined,
@@ -57,21 +54,17 @@ receiverId: receiverId,
     if (finalFile) form.append("file", finalFile);
 
     try {
-
       await sendMessageApi(chatId, form);
-       onLocalSend((prev: any[]) =>
-  prev.map(m =>
-    m.clientId === clientId
-      ? { ...m, status: "sent", isTemp: false }
-      : m
-  )
-);
+      onLocalSend((prev: any[]) =>
+        prev.map((m) =>
+          m.clientId === clientId ? { ...m, status: "sent", isTemp: false } : m
+        )
+      );
       socket.emit("stop-typing", { to: chatId });
       //  real message will come via socket (no duplicate)
-
     } catch {
       onLocalSend((prev: any[]) =>
-        prev.map(m =>
+        prev.map((m) =>
           m.clientId === clientId ? { ...m, status: "failed" } : m
         )
       );
@@ -82,26 +75,24 @@ receiverId: receiverId,
     <div className="sticky bottom-0 bg-white/10 backdrop-blur-xl border-t border-white/20 px-4 py-3">
       {pendingFile && (
         <div className="mb-2 flex items-center gap-2 px-3 py-2 rounded-lg bg-white/20 text-white text-sm">
-          📎 {pendingFile.name}
+           {pendingFile.name}
           <button
             onClick={() => setPendingFile(null)}
-            className="ml-auto text-red-900"
+            className="ml-auto text-red-400 hover:text-red-300"
           >
-            ✕
+            <X size={16} />
           </button>
         </div>
       )}
 
       <div className="flex gap-3 items-center">
-        <label className="cursor-pointer">
-          📎
+        <label className="cursor-pointer text-white/80 hover:text-white transition">
+          <Paperclip size={20} />
           <input
             ref={fileInputRef}
             type="file"
             hidden
-            onChange={(e) =>
-              setPendingFile(e.target.files?.[0] || null)
-            }
+            onChange={(e) => setPendingFile(e.target.files?.[0] || null)}
           />
         </label>
 
@@ -129,13 +120,13 @@ receiverId: receiverId,
         <button
           onClick={() => send()}
           disabled={!text.trim() && !pendingFile}
-          className={`px-5 py-2 rounded-xl ${
+          className={`p-3 rounded-xl flex items-center justify-center transition ${
             text.trim() || pendingFile
-              ? "bg-indigo-500 text-white"
+              ? "bg-indigo-500 text-white hover:bg-indigo-600"
               : "bg-gray-400 cursor-not-allowed"
           }`}
         >
-          Send
+          <Send size={18} />
         </button>
       </div>
     </div>

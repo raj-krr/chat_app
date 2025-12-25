@@ -4,6 +4,7 @@ import {
   deleteMessageForEveryoneApi,
   deleteMessageForMeApi,
 } from "../../../apis/chat.api";
+import { Paperclip ,File,Check, CheckCheck, Clock } from "lucide-react";
 
 const getFileType = (urlOrName: string) => {
   const ext = urlOrName.split(".").pop()?.toLowerCase();
@@ -158,7 +159,7 @@ const previewUrl = getPreviewUrl();
                     {fileType === "pdf" && "📄"}
                     {fileType === "doc" && "📝"}
                     {fileType === "excel" && "📊"}
-                    {fileType === "file" && "📎"}
+                    {fileType === "file" && <File size={20} />}
                   </span>
 
                   <div className="flex flex-col text-sm">
@@ -173,7 +174,7 @@ const previewUrl = getPreviewUrl();
             {/* TEMP FILE (before upload finishes) */}
             {msg.attachment && !msg.file && (
               <div className="mt-2 flex items-center gap-2 text-sm opacity-80">
-                📎 {msg.attachment.name}
+                <Paperclip size={16} /> {msg.attachment.name}
               </div>
             )}
           </>
@@ -190,15 +191,33 @@ const previewUrl = getPreviewUrl();
         )}
 
         {/* META */}
-        <div className="flex justify-end gap-1 text-[10px] opacity-60 mt-1">
-          {msg.createdAt &&
-            !isNaN(new Date(msg.createdAt).getTime()) &&
-            new Date(msg.createdAt).toLocaleTimeString([], {
-              hour: "2-digit",
-              minute: "2-digit",
-            })}
-          {isMe && <span>{msg.isRead ? "✔✔" : "✔"}</span>}
-        </div>
+        <div className="flex justify-end items-center gap-1 text-[10px] opacity-60 mt-1">
+  {msg.createdAt &&
+    !isNaN(new Date(msg.createdAt).getTime()) &&
+    new Date(msg.createdAt).toLocaleTimeString([], {
+      hour: "2-digit",
+      minute: "2-digit",
+    })}
+
+  {isMe && (
+    <>
+      {msg.status === "sending" && <Clock size={12} />}
+
+      {msg.status === "sent" && !msg.isRead && (
+        <Check size={14} />
+      )}
+
+      {msg.status === "delivered" && !msg.isRead && (
+        <CheckCheck size={14} />
+      )}
+
+      {msg.isRead && (
+        <CheckCheck size={14} className="text-blue-400" />
+      )}
+    </>
+  )}
+</div>
+
       </div>
     </div>
   );
