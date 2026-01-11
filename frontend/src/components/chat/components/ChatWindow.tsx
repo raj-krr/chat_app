@@ -2,7 +2,7 @@ import ChatHeader from "./ChatHeader";
 import MessageBubble from "../components/MessageBubble";
 import MessageInput from "../components/MessageInput";
 import { useAuth } from "../../../context/AuthContext";
-import { useEffect ,useState} from "react";
+import { useEffect, useState } from "react";
 
 import { useChatMessages } from "../hooks/useChatMessages";
 import { useChatSocket } from "../hooks/useChatSocket";
@@ -26,7 +26,7 @@ const formatDateLabel = (date: string) => {
 
 export default function ChatWindow({ chat, onBack }: any) {
   const { user } = useAuth();
-const [replyTo, setReplyTo] = useState<any>(null);
+  const [replyTo, setReplyTo] = useState<any>(null);
 
   const {
     messages,
@@ -56,42 +56,52 @@ const [replyTo, setReplyTo] = useState<any>(null);
   }, [messages]);
 
   useEffect(() => {
-  setReplyTo(null);
-}, [chat._id]);
+    setReplyTo(null);
+  }, [chat._id]);
+
+  useEffect(() => {
+    if (!messages.length) return;
+
+    const lastMsg = messages[messages.length - 1];
+
+    // if last message is from other user → mark as read
+    if (lastMsg.senderId !== user?._id) {
+      markRead();
+    }
+  }, [chat._id]);
 
 const scrollToMessage = async (messageId: string) => {
-  // Try to find message in DOM
-  let el = document.querySelector(
-    `[data-msg-id="${messageId}"]`
-  ) as HTMLElement | null;
+  const id = String(messageId);
 
-  if (el) {
-    el.scrollIntoView({ behavior: "smooth", block: "center" });
-    el.classList.add("reply-highlight");
-    setTimeout(() => el.classList.remove("reply-highlight"), 1200);
-    return;
-  }
+  let attempts = 0;
 
-  if (hasMore && !loadingMore) {
-    await loadMessages();
-  }
+  const tryScroll = async () => {
+    const el = document.querySelector(
+      `[data-msg-id="${id}"]`
+    ) as HTMLElement | null;
 
-  setTimeout(() => {
-  const retryEl = document.querySelector(
-    `[data-msg-id="${messageId}"]`
-  ) as HTMLElement | null;
+    if (el) {
+      el.scrollIntoView({ behavior: "smooth", block: "center" });
+      el.classList.add("reply-highlight");
 
-  if (retryEl) {
-    retryEl.scrollIntoView({ behavior: "smooth", block: "center" });
-    retryEl.classList.add("reply-highlight");
+      setTimeout(() => {
+        el.classList.remove("reply-highlight");
+      }, 1200);
 
-    setTimeout(() => {
-      retryEl.classList.remove("reply-highlight");
-    }, 1200);
-  }
-}, 50);
+      return;
+    }
 
+    // Load more messages if not found
+    if (hasMore && !loadingMore && attempts < 5) {
+      attempts++;
+      await loadMessages();
+      setTimeout(tryScroll, 120);
+    }
+  };
+
+  tryScroll();
 };
+
 
   const handleScroll = async () => {
     const el = containerRef.current;
@@ -118,12 +128,10 @@ const scrollToMessage = async (messageId: string) => {
       await loadMessages();
     }
   };
-const normalizedMessages = messages.map((m) => ({
-  ...m,
-  __key: m._id
-    ? `server-${m._id}`
-    : `client-${m.clientId}`, //  prefix matters
-}));
+  const normalizedMessages = messages.map((m) => ({
+    ...m,
+    __key: m._id ? `server-${m._id}` : `client-${m.clientId}`, //  prefix matters
+  }));
 
   const visibleMessages = normalizedMessages.filter((m) => {
     if (!m._id) return true;
@@ -161,15 +169,25 @@ const normalizedMessages = messages.map((m) => ({
                   {formatDateLabel(currDate.toISOString())}
                 </div>
               )}
-
-             <MessageBubble
-  msg={m}
-  chatUser={chat}
-  showAvatar={showAvatar}
+              <MessageBubble
+                msg={m}
+                chatUser={chat}
+                showAvatar={showAvatar}
                 onReply={(msg: any) => setReplyTo(msg)}
                 onJump={scrollToMessage}
-/>
-
+                onDeleteForMe={(id: string) => {
+                  setMessages((prev: any[]) =>
+                    prev.map((msg) =>
+                      msg._id === id
+                        ? {
+                            ...msg,
+                            deletedFor: [...(msg.deletedFor || []), user._id],
+                          }
+                        : msg
+                    )
+                  );
+                }}
+              />
             </div>
           );
         })}
@@ -213,15 +231,13 @@ const normalizedMessages = messages.map((m) => ({
         </button>
       )}
       <div className="shrink-0 border-t border-white/10 bg-white/10 backdrop-blur-xl">
-
         <MessageInput
           chatId={chat._id}
           receiverId={chat._id}
-  onLocalSend={setMessages}
-  replyTo={replyTo}
-  clearReply={() => setReplyTo(null)}
-/>
-
+          onLocalSend={setMessages}
+          replyTo={replyTo}
+          clearReply={() => setReplyTo(null)}
+        />
       </div>
     </div>
   );

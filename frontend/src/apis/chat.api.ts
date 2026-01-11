@@ -35,4 +35,6 @@ export const deleteMessageForEveryoneApi = (id: string) =>
 export const deleteMessageForMeApi = (id: string) =>
   axiosInstance.delete(`/message/me/${id}`);
 
+export const messageReactionApi = (id: string, emoji: string) =>
+  axiosInstance.post(`/message/${id}/react`, { emoji });
 

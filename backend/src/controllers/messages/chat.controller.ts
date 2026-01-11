@@ -457,3 +457,54 @@ export const deleteMessageForMe = async (req: Request, res: Response) => {
     return res.status(500).json({ msg: "Server error" });
   }
 };
+export const reactToMessage = async (req:Request, res:Response) => {
+  try {
+    const { emoji } = req.body;
+    const userId = req.user?.userId;
+    const messageId = req.params.messageId;
+
+    const message = await MessageModal.findById(messageId);
+    if (!message) {
+      return res.status(404).json({ success: false });
+    }
+
+    // 1️⃣ Remove existing reaction from this user
+    message.reactions = message.reactions.filter(
+      r => r.userId.toString() !== userId
+    );
+
+    // 2️⃣ Add new reaction
+    message.reactions.push({ emoji, userId: new mongoose.Types.ObjectId(userId) });
+
+    await message.save();
+
+    // 3️⃣ 🔥 EMIT SOCKET EVENT HERE
+    const io = getIO();
+
+    const senderId = message.senderId.toString();
+    const receiverId = message.receiverId.toString();
+
+    const receiverSocketId = onlineUsers.get(receiverId);
+    const senderSocketId = onlineUsers.get(senderId);
+
+    const payload = {
+      messageId: message._id,
+      reactions: message.reactions,
+    };
+
+    if (receiverSocketId) {
+      io.to(receiverSocketId).emit("message-reaction", payload);
+    }
+
+    if (senderSocketId) {
+      io.to(senderSocketId).emit("message-reaction", payload);
+    }
+
+    return res.json({
+      success: true,
+      reactions: message.reactions,
+    });
+  } catch (err) {
+    return res.status(500).json({ success: false });
+  }
+};

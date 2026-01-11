@@ -63,7 +63,7 @@ export function useChatSocket({
       }
     : null,
 };
-  
+
   setMessages((prev: any[]) => {
   if (isMine && message.clientId) {
     const idx = prev.findIndex(
@@ -115,7 +115,25 @@ if (
     return () => { socket.off("new-message", onNewMessage) };
 }, [chatId, userId, setMessages]);
 
+  /* -------- MESSAGE REACTION -------- */
+useEffect(() => {
+  const onMessageReaction = ({ messageId, reactions }: any) => {
+    setMessages((prev: any[]) =>
+      prev.map(m =>
+        m._id === messageId
+          ? { ...m, reactions }
+          : m
+      )
+    );
+  };
 
+  socket.on("message-reaction", onMessageReaction);
+
+  return () => {
+    socket.off("message-reaction", onMessageReaction);
+  };
+}, [setMessages]);
+  
   /* -------- TYPING -------- */
   useEffect(() => {
     const onTyping = ({ from }: any) => {

@@ -1,6 +1,11 @@
 import mongoose from "mongoose";
 import { Types, Document } from "mongoose";
 
+export interface IMessageReaction {
+  emoji: string;
+  userId: Types.ObjectId;
+}
+
 export interface IMessage extends Document {
   senderId: Types.ObjectId;
   receiverId: Types.ObjectId;
@@ -11,6 +16,7 @@ export interface IMessage extends Document {
   deletedFor: string[];
   clientId: string,
   replyTo?: Types.ObjectId | null;
+   reactions: IMessageReaction[];
 }
 
 
@@ -44,7 +50,16 @@ deletedFor: {
   type: mongoose.Schema.Types.ObjectId,
   ref: "Message",
   default: null,
-}
+},
+reactions: [
+  {
+    emoji: String,
+    userId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+    },
+  },
+],
 
 
 }, { timestamps: true },
