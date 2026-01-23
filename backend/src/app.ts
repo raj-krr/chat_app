@@ -5,13 +5,12 @@ import express, { Application, Request, Response } from "express";
 import cookieParser from "cookie-parser";
 import cors from "cors";
 
-import mongoDb from "./libs/db";
 import authRoutes from "./routes/authRoute";
 import meRoutes from "./routes/meRoutes";
 import messageRoute from "./routes/messageRoute";
 import friendRoute from "./routes/friendRoute";
 import { healthCheck } from "./controllers/health.controller";
-import notificationRoutes from "./routes/notificationRoute"
+import notificationRoutes from "./routes/notificationRoute";
 
 const app: Application = express();
 
@@ -25,9 +24,6 @@ app.use(
 app.use(express.json());
 app.use(cookieParser());
 
-mongoDb();
-
-
 app.get("/api/health", healthCheck);
 
 app.get("/api", (req: Request, res: Response) => {
@@ -39,6 +35,5 @@ app.use("/api/me", meRoutes);
 app.use("/api/message", messageRoute);
 app.use("/api/friends", friendRoute);
 app.use("/api/notifications", notificationRoutes);
-
 
 export default app;
