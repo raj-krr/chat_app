@@ -2,6 +2,54 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+html {
+  scroll-behavior: smooth;
+}
+
+/* underline animation */
+.nav-link {
+  position: relative;
+}
+.nav-link::after {
+  content: "";
+  position: absolute;
+  bottom: -4px;
+  left: 0;
+  width: 0;
+  height: 1px;
+  background: white;
+  transition: width 0.2s ease;
+}
+.nav-link:hover::after {
+  width: 100%;
+}
+
+/* fade in */
+.fade-in {
+  animation: fadeIn 0.8s ease-out both;
+}
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* floating mock */
+.float {
+  animation: floatAnim 6s ease-in-out infinite;
+}
+@keyframes floatAnim {
+  50% { transform: translateY(-6px); }
+}
+
+/* accessibility */
+@media (prefers-reduced-motion: reduce) {
+  .fade-in,
+  .float {
+    animation: none;
+  }
+}
+
+
 
 .chitchat-bg {
   @apply bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500;
