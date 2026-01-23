@@ -74,7 +74,7 @@ export default function HomePage() {
       </header>
 
       {/* ================= HERO ================= */}
-      <section id="hero" className="relative overflow-hidden pt-20 sm:pt-24">
+      <section id="hero" className="relative overflow-hidden pt-16 sm:pt-20">
         {/* background glow (UNCHANGED) */}
         <div className="absolute -top-40 -left-40 w-[400px] sm:w-[500px] h-[400px] sm:h-[500px] bg-indigo-600/20 blur-[140px]" />
         <div className="absolute top-40 -right-40 w-[300px] sm:w-[400px] h-[300px] sm:h-[400px] bg-blue-500/20 blur-[140px]" />
