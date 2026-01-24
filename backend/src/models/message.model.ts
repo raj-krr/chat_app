@@ -7,6 +7,7 @@ export interface IMessageReaction {
 }
 
 export interface IMessage extends Document {
+  chatId: Types.ObjectId;
   senderId: Types.ObjectId;
   receiverId: Types.ObjectId;
   text?: string;
@@ -16,11 +17,18 @@ export interface IMessage extends Document {
   deletedFor: string[];
   clientId: string,
   replyTo?: Types.ObjectId | null;
-   reactions: IMessageReaction[];
+  reactions: IMessageReaction[];
+  status: "sending" | "sent" | "delivered" | "read" | "failed";
 }
 
 
 const messageSchema = new mongoose.Schema<IMessage>({
+    chatId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Chat",
+      required: true,
+      index: true,
+  },
     senderId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "User",
@@ -59,7 +67,12 @@ reactions: [
       ref: "User",
     },
   },
-],
+  ],
+status: {
+  type: String,
+  enum: ["sending", "sent", "delivered", "read", "failed"],
+  default: "sent",
+},
 
 
 }, { timestamps: true },

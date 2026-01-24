@@ -10,6 +10,8 @@ import { onlineUsers } from "../../socket";
 import { getIO } from "../../socketEmitter";
 import mongoose from "mongoose";
 import { IMessage } from "../../models/message.model";
+import { getChatId } from "../../utils/constants";
+import { handleAIBotReply } from "../../libs/aiBot";
 
 type PopulatedReplyTo = {
   _id: Types.ObjectId;
@@ -109,7 +111,7 @@ export const getChatList = async (req: Request, res: Response) => {
 
     const users = await UserMOdel.find({
       _id: { $in: userIds },
-    }).select("username avatar");
+    }).select("username avatar isBot");
 
     const userMap = new Map(users.map((u) => [u._id.toString(), u]));
 
@@ -200,6 +202,11 @@ export const sendMessages = async (req: Request, res: Response) => {
     ? req.body.replyTo
     : undefined;
 
+    const chatId = getChatId(
+  sender._id.toString(),
+  receiver._id.toString()
+);
+
     const allowedMimesTypes = [
       "image/jpeg",
       "image/png",
@@ -256,12 +263,14 @@ export const sendMessages = async (req: Request, res: Response) => {
       });
     }
 
-const message = await new MessageModal({
+    const message = await new MessageModal({
+       chatId,
   senderId: sender._id,
   receiverId: receiver._id,
   text,
   file: fileUrl,
-  clientId,
+      clientId,
+  status: "sent",
   ...(replyTo && { replyTo: new Types.ObjectId(replyTo) }),
 }).save();
 
@@ -300,6 +309,12 @@ const populatedMessage = await MessageModal.findOne({
     const receiverSocketId = onlineUsers.get(receiverIdStr);
     const io = getIO();
 
+       const senderSocketId = onlineUsers.get(senderIdStr);
+      if (senderSocketId) {
+  io.to(senderSocketId).emit("new-message", {
+    message: msg,
+  });
+}
     if (receiverSocketId) {
   io.to(receiverSocketId).emit("new-message", {
     message: {
@@ -307,19 +322,20 @@ const populatedMessage = await MessageModal.findOne({
       clientId,
     },
   });
-      const senderSocketId = onlineUsers.get(senderIdStr);
-      if (senderSocketId) {
-  io.to(senderSocketId).emit("new-message", {
-    message: msg,
-  });
-}
 
   io.to(receiverSocketId).emit("unread-update", {
     from: senderIdStr,
   });
     }
+    if (receiver.isBot) {
+  handleAIBotReply({
+    chatId: chatId.toString(),
+    userMessage: text || "",
+    userId: sender._id.toString(),
+  });
+}
 
-    return res.status(200).json({
+return res.status(200).json({
   success: true,
   message: {
     ...msg,
@@ -468,17 +484,14 @@ export const reactToMessage = async (req:Request, res:Response) => {
       return res.status(404).json({ success: false });
     }
 
-    // 1️⃣ Remove existing reaction from this user
     message.reactions = message.reactions.filter(
       r => r.userId.toString() !== userId
     );
 
-    // 2️⃣ Add new reaction
     message.reactions.push({ emoji, userId: new mongoose.Types.ObjectId(userId) });
 
     await message.save();
 
-    // 3️⃣ 🔥 EMIT SOCKET EVENT HERE
     const io = getIO();
 
     const senderId = message.senderId.toString();

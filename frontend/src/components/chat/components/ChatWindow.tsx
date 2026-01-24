@@ -195,26 +195,6 @@ const scrollToMessage = async (messageId: string) => {
         <div ref={endRef} />
       </div>
 
-     <div
-  className="
-    px-3
-    text-[11px] text-white/60
-    transition-opacity duration-200
-    md:px-4 md:text-xs
-  "
-  style={{
-    minHeight: isTyping ? "10px" : "0px",
-    opacity: isTyping ? 1 : 0,
-  }}
->
-        Typing
-        <span className="typing-dots ml-1">
-          <span>.</span>
-          <span>.</span>
-          <span>.</span>
-        </span>
-      </div>
-
       {showNewMsgBtn && (
         <button
           onClick={() => {
@@ -237,6 +217,25 @@ const scrollToMessage = async (messageId: string) => {
   px-3
   md:bottom-0 md:px-0
 ">
+{isTyping && (
+  <div
+    className="
+      absolute -top-4 left-3
+      text-[11px] md:text-xs
+      text-white
+      select-none
+      animate-typing-text
+    "
+  >
+    typing
+    <span className="typing-dots ml-0.5">
+      <span>.</span>
+      <span>.</span>
+      <span>.</span>
+    </span>
+  </div>
+)}
+
         <MessageInput
           chatId={chat._id}
           receiverId={chat._id}

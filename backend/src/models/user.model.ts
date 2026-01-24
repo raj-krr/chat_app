@@ -32,6 +32,7 @@ export interface IUser extends Document {
   updatedAt: Date;
   lastSeen: Date;
   isOnline: boolean;
+  isBot: boolean;
 }
 
 const userSchema = new mongoose.Schema<IUser>(
@@ -87,6 +88,7 @@ const userSchema = new mongoose.Schema<IUser>(
     ],
     lastSeen: { type: Date, default: null },
     isOnline: { type: Boolean, default: false },
+    isBot: { type: Boolean, default: false },
   },
   { timestamps: true }
 );

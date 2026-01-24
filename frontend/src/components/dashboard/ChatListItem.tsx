@@ -55,6 +55,7 @@ export default function ChatListItem({
           />
 
           {/* Online dot */}
+          {!user.isBot && (
           <span
             className={`
               absolute bottom-0 right-0
@@ -62,8 +63,10 @@ export default function ChatListItem({
            
               ${isOnline ? "bg-green-500" : "bg-gray-400"}
             `}
-          />
+            />
+            )}
         </div>
+        
 
         {/* Content */}
         <div className="flex-1 min-w-0">
@@ -90,7 +93,7 @@ export default function ChatListItem({
         </div>
 
         {/* Unread badge */}
-        {unreadCount > 0 && (
+        {unreadCount > 0 && !user.isBot && (
           <div
             className="
               min-w-[22px] h-[22px]

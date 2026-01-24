@@ -5,6 +5,15 @@ import UserMOdel from "../../models/user.model";
 import { Types } from "mongoose";
 import Notification from "../../models/notification.modal";
 
+type UserListItem = {
+  _id: Types.ObjectId;
+  username: string;
+  avatar?: string;
+  isFriend: boolean;
+  requestStatus: "none" | "sent" | "received";
+  isBot?: boolean;
+};
+
 export const getAllUsers = async (req: Request, res: Response) => {
   try {
     const myId = new Types.ObjectId(req.user!.userId);
@@ -62,7 +71,7 @@ export const getAllUsers = async (req: Request, res: Response) => {
 
     const friendsSet = new Set(me.friends.map((id) => id.toString()));
 
-    const enrichedUsers = users.map((user) => {
+    const enrichedUsers: UserListItem[] = users.map((user) => {
       const userId = user._id.toString();
 
       let requestStatus: "none" | "sent" | "received" = "none";
@@ -78,6 +87,20 @@ export const getAllUsers = async (req: Request, res: Response) => {
         requestStatus,
       };
     });
+    const botUser = await UserMOdel.findOne({ isBot: true })
+  .select("username avatar");
+
+if (botUser) {
+  enrichedUsers.unshift({
+    _id: botUser._id,
+    username: botUser.username,
+    avatar: botUser.avatar,
+    isFriend: true,        
+    requestStatus: "none",
+    isBot: true,
+  });
+}
+
 
     const totalPages = Math.ceil(total / limit);
 
@@ -112,9 +135,12 @@ export const getMyFriends = async (req: Request, res: Response) => {
       return res.status(404).json({ success: false, msg: "User not found" });
     }
 
-    const friends = await UserMOdel.find({
-      _id: { $in: me.friends },
-    }).select("-password -refreshToken");
+   const friends = await UserMOdel.find({
+  $or: [
+    { _id: { $in: me.friends } },
+    { isBot: true }, 
+  ],
+}).select("-password -refreshToken");
 
     return res.status(200).json({
       success: true,

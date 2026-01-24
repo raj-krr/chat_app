@@ -30,9 +30,9 @@ export default function ChatHeader({ user, onBack }: any) {
           src={user.avatar || "/avatar-placeholder.png"}
           className="w-10 h-10 rounded-full object-cover"
         />
-       {isOnline && (
-          <span className="absolute bottom-0 right-0 w-2 h-2 bg-green-500 animate-pulse rounded-full" />
-          )}
+       {!user.isBot && isOnline && (
+  <span className="absolute bottom-0 right-0 w-2 h-2 bg-green-400 animate-pulse rounded-full" />
+)}
       </div>
 
       {/* NAME + STATUS */}
@@ -40,13 +40,16 @@ export default function ChatHeader({ user, onBack }: any) {
         <span className="text-white font-semibold">
           {user.username}
         </span>
-        <span className="text-xs text-white/70">
-          {isOnline
-            ? "online"
-            : lastSeen[user._id]
-            ? `last seen ${new Date(lastSeen[user._id]).toLocaleTimeString()}`
-            : "offline"}
-        </span>
+       <span className="text-xs text-white/70">
+  {user.isBot
+    ? "🤖 AI Assistant"
+    : isOnline
+      ? "online"
+      : lastSeen[user._id]
+        ? `last seen ${new Date(lastSeen[user._id]).toLocaleTimeString()}`
+        : "offline"}
+</span>
+
       </div>
     </div>
   );

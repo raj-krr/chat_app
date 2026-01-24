@@ -44,34 +44,37 @@ export const chatPermissionMiddleware = async (
     const senderBlockedReceiver = sender.blockedUsers?.some(
       (id: Types.ObjectId) => id.toString() === receiverId
     );
-
-    if (senderBlockedReceiver) {
-      return res.status(403).json({
-        success: false,
-        msg: "You have blocked this user",
-      });
+    if (!receiver.isBot) {
+      if (senderBlockedReceiver) {
+        return res.status(403).json({
+          success: false,
+          msg: "You have blocked this user",
+        });
+      }
     }
 
     const receiverBlockedSender = receiver.blockedUsers?.some(
       (id: Types.ObjectId) => id.toString() === senderId
     );
-
     if (receiverBlockedSender) {
-      return res.status(403).json({
-        success: false,
-        msg: "You are blocked by this user",
-      });
+      if (receiverBlockedSender) {
+        return res.status(403).json({
+          success: false,
+          msg: "You are blocked by this user",
+        });
+      }
     }
 
     const isFriend = sender.friends.some(
       (id: Types.ObjectId) => id.toString() === receiverId
     );
-
-    if (!isFriend) {
-      return res.status(403).json({
-        success: false,
-        msg: "You can only chat with friends",
-      });
+    if (!receiver.isBot) {
+      if (!isFriend) {
+        return res.status(403).json({
+          success: false,
+          msg: "You can only chat with friends",
+        });
+      }
     }
 
     req.chatUsers = {

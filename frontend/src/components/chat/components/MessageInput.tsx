@@ -84,17 +84,18 @@ if (replyTo?._id) form.append("replyTo", replyTo._id);
   };
 
   return (
- <div className="px-0 py-0 ">
+ <div className="px-0 pt-2">
   <div
     className="
       bg-white/20 backdrop-blur-md
-      rounded-2xl
-      px-3 py-2
+      rounded-2xl sm:rounded-2xl
+px-2 sm:px-3
+py-1.5 sm:py-2
     "
   >
     {/* 🔹 REPLY PREVIEW */}
     {replyTo && (
-      <div className="mb-1 flex items-center gap-2 px-2 py-1 rounded-lg bg-black/30 text-white text-xs">
+      <div className="mb-1 flex items-center gap-2 px-2 py-0.5 sm:py-1 text-[11px] sm:text-xs rounded-lg bg-black/30 text-white">
         <div className="flex-1 min-w-0">
           <div className="opacity-70 truncate">
             {replyTo.senderId === user._id ? "You" : replyTo.senderName || "User"}
@@ -111,7 +112,7 @@ if (replyTo?._id) form.append("replyTo", replyTo._id);
 
     {/* 🔹 FILE PREVIEW */}
     {pendingFile && (
-      <div className="mb-1 flex items-center gap-2 px-2 py-1 rounded-lg bg-white/20 text-white text-xs">
+      <div className="mb-1 flex items-center gap-2 px-2 py-0.5 sm:py-1 text-[11px] sm:text-xs rounded-lg bg-white/20 text-white ">
         <span className="truncate flex-1">{pendingFile.name}</span>
         <button
           onClick={() => setPendingFile(null)}
@@ -123,9 +124,10 @@ if (replyTo?._id) form.append("replyTo", replyTo._id);
     )}
 
     {/* 🔹 INPUT ROW */}
-    <div className="flex items-center gap-2 min-h-[35px]">
+    <div className="flex items-center gap-1.5 sm:gap-2 min-h-[32px] sm:min-h-[35px]">
       <label className="cursor-pointer text-white/80 shrink-0">
-        <Paperclip size={20} />
+        <Paperclip size={18} className="sm:hidden" />
+<Paperclip size={20} className="hidden sm:block" />
         <input
           ref={fileInputRef}
           type="file"
@@ -162,13 +164,15 @@ if (replyTo?._id) form.append("replyTo", replyTo._id);
         onClick={()=>send()}
         disabled={!text.trim() && !pendingFile}
         className="
-          w-9 h-9 rounded-full
+          w-8 h-8 sm:w-9 sm:h-9
+           rounded-full
           flex items-center justify-center
           bg-indigo-500 text-white
           shrink-0 disabled:opacity-40
         "
       >
-        <Send size={16} />
+        <Send size={14} className="sm:hidden" />
+<Send size={16} className="hidden sm:block" />
       </button>
     </div>
   </div>
